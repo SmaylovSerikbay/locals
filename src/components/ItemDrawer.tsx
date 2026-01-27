@@ -5,16 +5,19 @@ import { useItemsStore, Response } from '@/store/useItemsStore';
 import { Calendar, Clock, Star, X, MapPin, Share2, Heart, CheckCircle, Briefcase, ArrowLeft, Users, MessageCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useUserStore } from '@/store/useUserStore';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SlideButton from '@/components/ui/SlideButton';
+import { useChatStore } from '@/store/useChatStore';
 
 export default function ItemDrawer() {
   const { selectedItem, setSelectedItem, addResponse, updateResponseStatus, completeItem } = useItemsStore();
   const { user } = useUserStore();
+  const { openChat, setChatListOpen, chats } = useChatStore();
   const t = useTranslations('ItemDetails');
   
   const [activeTab, setActiveTab] = useState<'details' | 'responses'>('details');
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const isOpen = !!selectedItem;
 
@@ -31,7 +34,7 @@ export default function ItemDrawer() {
   const isOwner = user ? String(user.id) === selectedItem.author.id : false;
   const isCompleted = selectedItem.status === 'COMPLETED';
 
-  // Mock participants for events (random from responses or just placeholders)
+  // Mock participants for events
   const participants = selectedItem.responses.filter(r => r.status === 'ACCEPTED');
   
   // Handling responses
@@ -50,21 +53,33 @@ export default function ItemDrawer() {
       addResponse(selectedItem.id, newResponse);
   };
 
+  const handleChat = () => {
+      // Logic to find or create chat for this item/user
+      // For now, we just open the chat list to simulate "Clan/Group" chat
+      setSelectedItem(null);
+      setChatListOpen(true);
+      // Ideally: openChat(createdChatId);
+  };
+
   return (
-    <Drawer.Root open={isOpen} onOpenChange={handleOpenChange} shouldScaleBackground>
+    <Drawer.Root 
+        open={isOpen} 
+        onOpenChange={handleOpenChange} 
+        shouldScaleBackground
+        disablePreventScroll={false}
+    >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[1000] backdrop-blur-sm" />
-        <Drawer.Content className="bg-white flex flex-col rounded-t-[32px] h-[90vh] fixed bottom-0 left-0 right-0 z-[1001] outline-none shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+        <Drawer.Content 
+            className="bg-white flex flex-col rounded-t-[32px] fixed bottom-0 left-0 right-0 z-[1001] outline-none shadow-[0_-10px_40px_rgba(0,0,0,0.1)]"
+            style={{ height: 'auto', maxHeight: '90dvh' }}
+        >
           
           {/* Header Image / Actions */}
           <div className="relative h-64 shrink-0 bg-gray-100">
-             {/* Gradient Background (Placeholder for Image) */}
              <div className={`absolute inset-0 bg-gradient-to-br ${isTask ? 'from-yellow-100 to-orange-50' : 'from-blue-100 to-indigo-50'}`}></div>
-             
-             {/* Pattern Overlay */}
              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
 
-             {/* Close / Actions */}
              <div className="absolute top-4 left-4 right-4 flex justify-between z-10">
                  <button onClick={() => setSelectedItem(null)} className="w-10 h-10 bg-white/60 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white transition-all shadow-sm active:scale-95">
                     <X className="w-5 h-5 text-gray-900" />
@@ -79,7 +94,6 @@ export default function ItemDrawer() {
                  </div>
              </div>
 
-             {/* Big Type Label */}
              <div className="absolute bottom-8 left-6">
                 <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm mb-2 ${isTask ? 'bg-yellow-400 text-yellow-950' : 'bg-blue-500 text-white'}`}>
                     {isTask ? <Briefcase className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}
@@ -92,7 +106,11 @@ export default function ItemDrawer() {
           </div>
 
           {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto bg-white rounded-t-[32px] -mt-6 relative z-10 px-6 pt-8 pb-24">
+          <div 
+            ref={contentRef}
+            className="flex-1 overflow-y-auto bg-white rounded-t-[32px] -mt-6 relative z-10 px-6 pt-8"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 100px)' }}
+          >
             
             {/* Owner Tabs */}
             {isOwner && isTask && (
@@ -160,7 +178,9 @@ export default function ItemDrawer() {
                                             {participants.length + 1}
                                         </span>
                                     </h3>
-                                    <button className="text-blue-600 font-bold text-sm">See all</button>
+                                    <button onClick={handleChat} className="text-blue-600 font-bold text-sm bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors">
+                                        Join Chat
+                                    </button>
                                 </div>
                                 <div className="flex items-center -space-x-3 overflow-hidden py-2">
                                     {/* Author */}
@@ -198,7 +218,10 @@ export default function ItemDrawer() {
                                         <span>{selectedItem.author.reputation}</span>
                                     </div>
                                 </div>
-                                <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
+                                <button 
+                                    onClick={handleChat}
+                                    className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+                                >
                                     <MessageCircle className="w-5 h-5 text-gray-600" />
                                 </button>
                              </div>
