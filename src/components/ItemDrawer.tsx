@@ -56,21 +56,47 @@ export default function ItemDrawer() {
   const handleChat = () => {
       if (!selectedItem) return;
       
-      // Find existing group chat for this item (проверяем по itemId)
-      let groupChat = chats.find(c => c.itemId === selectedItem.id && c.isGroupChat);
+      const isTask = selectedItem.type === 'TASK';
       
-      // If no group chat exists, create it
-      if (!groupChat) {
-          console.log('Creating new group chat for item:', selectedItem.id);
-          const { createGroupChat } = useChatStore.getState();
-          groupChat = createGroupChat(selectedItem.id, selectedItem.title, selectedItem.type);
+      if (isTask) {
+          // Для ЗАДАЧ: Приватный чат с автором (1-на-1)
+          // Ищем существующий приватный чат с автором задачи
+          let privateChat = chats.find(
+              c => !c.isGroupChat && 
+              c.participant?.id === selectedItem.author.id
+          );
+          
+          if (!privateChat) {
+              console.log('Creating private chat with author:', selectedItem.author.id);
+              const { createPrivateChat } = useChatStore.getState();
+              privateChat = createPrivateChat(
+                  selectedItem.author.id,
+                  selectedItem.author.name,
+                  selectedItem.author.avatarUrl,
+                  selectedItem.id,
+                  selectedItem.title
+              );
+          } else {
+              console.log('Using existing private chat:', privateChat.id);
+          }
+          
+          setSelectedItem(null);
+          openChat(privateChat.id);
       } else {
-          console.log('Using existing group chat:', groupChat.id);
+          // Для СОБЫТИЙ: Групповой чат (топик в Telegram)
+          let groupChat = chats.find(c => c.itemId === selectedItem.id && c.isGroupChat);
+          
+          if (!groupChat) {
+              console.log('Creating new group chat for event:', selectedItem.id);
+              const { createGroupChat } = useChatStore.getState();
+              groupChat = createGroupChat(selectedItem.id, selectedItem.title, selectedItem.type);
+          } else {
+              console.log('Using existing group chat:', groupChat.id);
+          }
+          
+          setSelectedItem(null);
+          openChat(groupChat.id);
       }
-      
-      // Open the chat
-      setSelectedItem(null);
-      openChat(groupChat.id);
   };
 
   return (
@@ -230,12 +256,23 @@ export default function ItemDrawer() {
                                         <span>{selectedItem.author.reputation}</span>
                                     </div>
                                 </div>
-                                <button 
-                                    onClick={handleChat}
-                                    className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
-                                >
-                                    <MessageCircle className="w-5 h-5 text-gray-600" />
-                                </button>
+                                {/* Для задач - кнопка "Написать", для событий - иконка чата */}
+                                {isTask ? (
+                                    <button
+                                        onClick={handleChat}
+                                        className="px-4 py-2 bg-blue-500 text-white rounded-full font-bold text-sm hover:bg-blue-600 transition-colors flex items-center gap-2"
+                                    >
+                                        <MessageCircle className="w-4 h-4" />
+                                        Написать
+                                    </button>
+                                ) : (
+                                    <button 
+                                        onClick={handleChat}
+                                        className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+                                    >
+                                        <MessageCircle className="w-5 h-5 text-gray-600" />
+                                    </button>
+                                )}
                              </div>
                         </div>
 

@@ -39,6 +39,7 @@ interface ChatState {
   closeChat: () => void;
   sendMessage: (chatId: string, text: string) => void;
   createGroupChat: (itemId: string, itemTitle: string, itemType: string) => Chat;
+  createPrivateChat: (userId: string, userName: string, userAvatar: string, itemId?: string, itemTitle?: string) => Chat;
 }
 
 // Mock Data
@@ -229,6 +230,55 @@ export const useChatStore = create<ChatState>()(
               )
           }));
       });
+
+      return newChat;
+  },
+  
+  createPrivateChat: (userId, userName, userAvatar, itemId, itemTitle) => {
+      // Проверяем, не существует ли уже приватный чат с этим пользователем
+      const existingChat = get().chats.find(
+          c => !c.isGroupChat && c.participant?.id === userId
+      );
+      if (existingChat) {
+          console.log('Private chat already exists with user:', userId);
+          return existingChat;
+      }
+
+      const newChat: Chat = {
+          id: `private_${userId}`,
+          isGroupChat: false,
+          participant: {
+              id: userId,
+              name: userName,
+              avatarUrl: userAvatar,
+              isOnline: true // Mock
+          },
+          unreadCount: 0,
+          lastMessage: {
+              id: 'welcome',
+              senderId: 'system',
+              text: itemTitle 
+                  ? `Чат по задаче "${itemTitle}"` 
+                  : `Начните общение`,
+              timestamp: new Date().toISOString(),
+              isRead: true
+          },
+          messages: [
+              {
+                  id: 'welcome',
+                  senderId: 'system',
+                  text: itemTitle 
+                      ? `📦 Чат создан для обсуждения задачи "${itemTitle}". Договоритесь о деталях!`
+                      : `👋 Начните общение с ${userName}`,
+                  timestamp: new Date().toISOString(),
+                  isRead: true
+              }
+          ]
+      };
+
+      set((state) => ({
+          chats: [...state.chats, newChat]
+      }));
 
       return newChat;
   }
