@@ -167,13 +167,20 @@ export default function ChatListDrawer() {
                     {activeChat.isGroupChat && activeChat.telegramGroupLink && (
                         <a 
                             href={activeChat.telegramGroupLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-bold text-sm mb-3 hover:bg-blue-100 transition-colors"
+                            className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-3 rounded-2xl font-bold text-base mb-3 hover:shadow-lg active:scale-[0.98] transition-all shadow-md"
                         >
-                            <ExternalLink className="w-4 h-4" />
-                            Open in Telegram
+                            <ExternalLink className="w-5 h-5" />
+                            Create Telegram Group
                         </a>
+                    )}
+                    
+                    {/* Info for group chats */}
+                    {activeChat.isGroupChat && !activeChat.telegramGroupLink && (
+                        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-3 text-center">
+                            <p className="text-sm text-blue-600 font-medium">
+                                🔄 Setting up Telegram group...
+                            </p>
+                        </div>
                     )}
                     
                     <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-4xl border border-gray-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all">

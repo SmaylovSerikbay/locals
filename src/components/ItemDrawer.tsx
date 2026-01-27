@@ -85,7 +85,7 @@ export default function ItemDrawer() {
         >
           
           {/* Header Image / Actions */}
-          <div className="relative h-64 shrink-0 bg-gray-100">
+          <div className="relative h-48 shrink-0 bg-gray-100">
              <div className={`absolute inset-0 bg-gradient-to-br ${isTask ? 'from-yellow-100 to-orange-50' : 'from-blue-100 to-indigo-50'}`}></div>
              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
 
@@ -103,12 +103,12 @@ export default function ItemDrawer() {
                  </div>
              </div>
 
-             <div className="absolute bottom-8 left-6">
-                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm mb-2 ${isTask ? 'bg-yellow-400 text-yellow-950' : 'bg-blue-500 text-white'}`}>
+             <div className="absolute bottom-4 left-6 right-6">
+                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm mb-1 ${isTask ? 'bg-yellow-400 text-yellow-950' : 'bg-blue-500 text-white'}`}>
                     {isTask ? <Briefcase className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}
                     {isTask ? 'Task' : 'Event'}
                 </div>
-                <h1 className="text-3xl font-extrabold text-gray-900 leading-tight pr-6 drop-shadow-sm max-w-[80%] line-clamp-2">
+                <h1 className="text-3xl font-extrabold text-gray-900 leading-tight drop-shadow-sm line-clamp-2">
                     {selectedItem.title}
                 </h1>
              </div>

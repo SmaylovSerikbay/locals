@@ -129,7 +129,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
               {
                   id: 'welcome',
                   senderId: 'system',
-                  text: `Welcome! Discuss and coordinate here. Messages sync with Telegram group.`,
+                  text: itemType === 'EVENT' 
+                    ? `Добро пожаловать в чат события! Обсуждайте детали и договаривайтесь здесь.` 
+                    : `Добро пожаловать в чат задачи! Координируйте выполнение здесь.`,
                   timestamp: new Date().toISOString(),
                   isRead: true
               }

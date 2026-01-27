@@ -32,15 +32,21 @@ export default function SlideButton({ onSuccess, text = "Slide to confirm", clas
     if (!containerRef.current) return;
     const containerWidth = containerRef.current.offsetWidth;
     const handleWidth = 56; 
-    const threshold = (containerWidth - handleWidth) * 0.9; // 90% to trigger
+    const threshold = (containerWidth - handleWidth) * 0.75; // 75% to trigger (easier)
 
     if (x.get() > threshold) {
       setIsCompleted(true);
-      controls.start({ x: containerWidth - handleWidth - 8 }); // Snap to end
+      await controls.start({ 
+        x: containerWidth - handleWidth - 8,
+        transition: { type: "spring", stiffness: 300, damping: 30 }
+      }); // Snap to end with spring
       if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
-      onSuccess();
+      setTimeout(() => onSuccess(), 200); // Small delay for visual feedback
     } else {
-      controls.start({ x: 0 });
+      controls.start({ 
+        x: 0,
+        transition: { type: "spring", stiffness: 400, damping: 30 }
+      });
     }
   };
 
@@ -78,7 +84,10 @@ export default function SlideButton({ onSuccess, text = "Slide to confirm", clas
 
       {/* Progress Track */}
       <motion.div 
-          style={{ width: x, opacity: 0.2 }}
+          style={{ 
+            width: x,
+            opacity: useTransform(x, [0, constraints.right], [0.1, 0.4])
+          }}
           className="absolute left-0 top-0 bottom-0 bg-black z-0 rounded-l-[32px]"
       />
       

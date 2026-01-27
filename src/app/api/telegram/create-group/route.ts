@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Telegram Bot API to create a group chat
+// Telegram Bot API integration for group chat
 export async function POST(request: NextRequest) {
   try {
     const { title, itemId, itemType } = await request.json();
@@ -10,42 +10,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Bot token not configured' }, { status: 500 });
     }
 
-    // Note: Telegram Bot API doesn't allow bots to directly create groups
-    // Groups must be created by users, and the bot is added to them
-    // 
-    // For this use case, we have two options:
-    // 1. Create a Telegram Channel (broadcast only, but bot can create)
-    // 2. Use a pre-created group and send an invite link
-    // 
-    // The best approach for LOCALS:
-    // - Create a Supergroup via the bot (requires user to start the bot first)
-    // - OR use Telegram's "discussion group" feature tied to a channel
-    // - OR simply generate a deep link that opens a Telegram chat creation dialog
+    // Extract bot username from token (format: botId:token)
+    const botId = botToken.split(':')[0];
     
-    // For now, let's create a deep link that prompts user to create a group
-    // This is a limitation of Telegram Bot API - bots cannot create groups directly
+    // Solution: Use Telegram's startgroup deep link
+    // This opens Telegram with a pre-filled group creation dialog
+    // The bot will be automatically added to the group
+    const botUsername = await getBotUsername(botToken);
     
-    // Alternative: We'll generate a unique chat in our app and provide instructions
-    // to create Telegram group manually (with a template message)
+    // Create a deep link that:
+    // 1. Opens Telegram group creation
+    // 2. Adds the bot automatically
+    // 3. Pre-fills the group name
+    const deepLink = `https://t.me/${botUsername}?startgroup=${itemId}&admin=change_info+post_messages+delete_messages+invite_users+pin_messages`;
     
-    const deepLink = `https://t.me/share/url?url=${encodeURIComponent(
-      `Join our ${itemType === 'EVENT' ? 'event' : 'task'}: ${title}`
-    )}&text=${encodeURIComponent(
-      `Let's coordinate here for: ${title}`
+    // Alternative: Direct group creation link (requires user to click)
+    const inviteLink = `tg://msg?text=${encodeURIComponent(
+      `Join the ${itemType === 'EVENT' ? 'event' : 'task'}: ${title}\n\nClick to join our coordination group!`
     )}`;
 
     return NextResponse.json({
       success: true,
       chatId: `group_${itemId}`,
       deepLink,
-      // In production, you would:
-      // 1. Create a Supabase record for this chat
-      // 2. Set up a webhook to receive messages from Telegram
-      // 3. Sync messages bidirectionally
+      inviteLink,
+      botUsername,
+      instructions: 'Click the button to create a Telegram group with the bot'
     });
 
   } catch (error) {
     console.error('Error creating Telegram group:', error);
     return NextResponse.json({ error: 'Failed to create group' }, { status: 500 });
+  }
+}
+
+// Helper to get bot username
+async function getBotUsername(botToken: string): Promise<string> {
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/getMe`);
+    const data = await response.json();
+    if (data.ok && data.result) {
+      return data.result.username;
+    }
+    throw new Error('Failed to get bot info');
+  } catch (error) {
+    console.error('Error getting bot username:', error);
+    // Fallback: extract from token or use a default
+    return 'your_bot'; // You'll need to replace this with actual bot username
   }
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useRef } from 'react';
 import { Drawer } from 'vaul';
 import { useCreateStore } from '@/store/useCreateStore';
 import { useItemsStore } from '@/store/useItemsStore';
@@ -7,27 +8,13 @@ import { useTranslations } from 'next-intl';
 import { ArrowRight, Type, AlignLeft, Calendar, MapPin, DollarSign, Sparkles, ChevronRight } from 'lucide-react';
 import { Currency } from '@/store/useItemsStore';
 import { motion } from 'framer-motion';
-import { useRef } from 'react';
 
 const CURRENCIES: Currency[] = ['USD', 'KZT', 'RUB', 'EUR'];
 
-// Simplified Date Trigger (Just the card, no presets)
+// Custom Date & Time Picker with Presets
 function DateTrigger({ value, onChange }: { value: string, onChange: (val: string) => void }) {
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    const handleContainerClick = () => {
-        if (inputRef.current) {
-            if ('showPicker' in HTMLInputElement.prototype) {
-                try {
-                    inputRef.current.showPicker();
-                } catch (e) {
-                    inputRef.current.focus();
-                }
-            } else {
-                inputRef.current.focus();
-            }
-        }
-    };
+    const [showPicker, setShowPicker] = React.useState(false);
+    const [selectedDate, setSelectedDate] = React.useState<Date>(value ? new Date(value) : new Date());
 
     // Helper to format display
     const formatDisplay = (iso: string) => {
@@ -41,32 +28,106 @@ function DateTrigger({ value, onChange }: { value: string, onChange: (val: strin
         });
     };
 
-    return (
-        <div 
-            onClick={handleContainerClick}
-            className="flex items-center gap-3 px-4 py-4 bg-white border border-gray-100 rounded-2xl shadow-sm cursor-pointer active:bg-gray-50 transition-colors relative"
-        >
-            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                <Calendar className="w-5 h-5 text-blue-600" />
-            </div>
-            <div className="flex-1">
-                <div className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">When</div>
-                <div className={`text-lg font-bold ${value ? 'text-gray-900' : 'text-gray-300'}`}>
-                    {formatDisplay(value)}
-                </div>
-            </div>
-            <div className="bg-gray-100 px-3 py-1 rounded-full text-xs font-bold text-gray-500">Edit</div>
+    const applyPreset = (hours: number) => {
+        const date = new Date();
+        date.setHours(date.getHours() + hours);
+        date.setMinutes(0, 0, 0);
+        setSelectedDate(date);
+        onChange(date.toISOString().slice(0, 16));
+        setShowPicker(false);
+    };
 
-            {/* Hidden Native Input */}
-            <input 
-                ref={inputRef}
-                type="datetime-local"
-                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                style={{ visibility: 'hidden', position: 'absolute' }} 
-            />
-        </div>
+    const handleCustomSave = () => {
+        onChange(selectedDate.toISOString().slice(0, 16));
+        setShowPicker(false);
+    };
+
+    return (
+        <>
+            <div 
+                onClick={() => setShowPicker(true)}
+                className="flex items-center gap-3 px-4 py-4 bg-white border border-gray-100 rounded-2xl shadow-sm cursor-pointer active:bg-gray-50 transition-all hover:border-blue-200"
+            >
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                    <Calendar className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">When</div>
+                    <div className={`text-base font-bold ${value ? 'text-gray-900' : 'text-gray-300'}`}>
+                        {formatDisplay(value)}
+                    </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+            </div>
+
+            {/* Custom Picker Modal */}
+            {showPicker && (
+                <div 
+                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[1100] flex items-end"
+                    onClick={() => setShowPicker(false)}
+                >
+                    <motion.div 
+                        initial={{ y: '100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: '100%' }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full bg-white rounded-t-[32px] p-6 pb-8"
+                    >
+                        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" />
+                        <h3 className="text-2xl font-bold text-gray-900 mb-6">Choose Time</h3>
+                        
+                        {/* Quick Presets */}
+                        <div className="space-y-3 mb-6">
+                            <button
+                                onClick={() => applyPreset(3)}
+                                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 px-6 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex items-center justify-between"
+                            >
+                                <span>🌙 Tonight (3 hours)</span>
+                                <ChevronRight className="w-6 h-6" />
+                            </button>
+                            <button
+                                onClick={() => applyPreset(24)}
+                                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white py-4 px-6 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex items-center justify-between"
+                            >
+                                <span>☀️ Tomorrow</span>
+                                <ChevronRight className="w-6 h-6" />
+                            </button>
+                            <button
+                                onClick={() => applyPreset(168)}
+                                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-6 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex items-center justify-between"
+                            >
+                                <span>📅 Next Week</span>
+                                <ChevronRight className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        {/* Custom Date/Time */}
+                        <div className="bg-gray-50 rounded-2xl p-4 mb-4">
+                            <label className="block text-sm font-bold text-gray-500 mb-2 uppercase tracking-wide">Custom Date & Time</label>
+                            <input 
+                                type="datetime-local"
+                                value={selectedDate.toISOString().slice(0, 16)}
+                                onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 text-lg"
+                            />
+                            <button
+                                onClick={handleCustomSave}
+                                className="w-full mt-3 bg-black text-white py-3 px-6 rounded-xl font-bold hover:bg-gray-900 active:scale-[0.98] transition-all"
+                            >
+                                Apply Custom Time
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={() => setShowPicker(false)}
+                            className="w-full text-gray-500 font-bold py-3"
+                        >
+                            Cancel
+                        </button>
+                    </motion.div>
+                </div>
+            )}
+        </>
     );
 }
 
