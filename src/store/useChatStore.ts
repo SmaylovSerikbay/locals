@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface Message {
   id: string;
@@ -78,7 +79,9 @@ const MOCK_CHATS: Chat[] = [
   }
 ];
 
-export const useChatStore = create<ChatState>((set, get) => ({
+export const useChatStore = create<ChatState>()(
+  persist(
+    (set, get) => ({
   chats: MOCK_CHATS,
   activeChatId: null,
   isChatListOpen: false,
@@ -108,6 +111,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
     return { chats: updatedChats };
   }),
   createGroupChat: (itemId, itemTitle, itemType) => {
+      // Проверяем, не существует ли уже чат для этого item
+      const existingChat = get().chats.find(c => c.itemId === itemId && c.isGroupChat);
+      if (existingChat) {
+          console.log('Chat already exists for item:', itemId);
+          return existingChat; // Возвращаем существующий чат
+      }
+
       const newChat: Chat = {
           id: `group_${itemId}`,
           itemId,
@@ -222,4 +232,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
       return newChat;
   }
-}));
+}),
+    {
+      name: 'locals-chat-storage', // Имя ключа в localStorage
+      partialize: (state) => ({
+        chats: state.chats, // Сохраняем только чаты, не UI состояние
+      }),
+    }
+  )
+);

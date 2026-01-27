@@ -6,6 +6,7 @@ import {notFound} from 'next/navigation';
 import {routing} from '../../i18n/routing';
 import "../globals.css";
 import Script from 'next/script';
+import DevTools from '@/components/DevTools';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,6 +53,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextIntlClientProvider messages={messages}>
+          <DevTools />
           {children}
         </NextIntlClientProvider>
       </body>

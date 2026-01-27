@@ -56,13 +56,16 @@ export default function ItemDrawer() {
   const handleChat = () => {
       if (!selectedItem) return;
       
-      // Find existing group chat for this item
+      // Find existing group chat for this item (проверяем по itemId)
       let groupChat = chats.find(c => c.itemId === selectedItem.id && c.isGroupChat);
       
       // If no group chat exists, create it
       if (!groupChat) {
+          console.log('Creating new group chat for item:', selectedItem.id);
           const { createGroupChat } = useChatStore.getState();
           groupChat = createGroupChat(selectedItem.id, selectedItem.title, selectedItem.type);
+      } else {
+          console.log('Using existing group chat:', groupChat.id);
       }
       
       // Open the chat
