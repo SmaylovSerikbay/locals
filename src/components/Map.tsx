@@ -119,7 +119,7 @@ function LocationSelector() {
              {/* The Bubble */}
              <div className="bg-white px-6 py-3 rounded-full shadow-xl border-2 border-gray-100 relative mb-1">
                  <span className="font-bold text-gray-800 text-sm whitespace-nowrap flex items-center gap-2">
-                    🤔 {t('confirm_location').replace('Confirm Location', 'Move map to place pin')}
+                    🤔 {t('set_location_instruction')}
                  </span>
              </div>
              

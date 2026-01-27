@@ -115,8 +115,8 @@ export default function CreateDrawer() {
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[1000] backdrop-blur-sm" />
         <Drawer.Content 
-            className="bg-[#F2F2F7] flex flex-col rounded-t-[32px] fixed bottom-0 left-0 right-0 z-[1001] outline-none shadow-2xl transition-all duration-200 ease-out"
-            style={{ height: 'auto', maxHeight: '90dvh' }} // Use dvh for mobile viewports
+            className="bg-[#F2F2F7] flex flex-col rounded-t-[32px] fixed bottom-0 left-0 right-0 z-[1001] outline-none shadow-2xl"
+            style={{ minHeight: '40vh', maxHeight: '85vh' }}
         >
           
           <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mt-3 mb-2 z-20" />

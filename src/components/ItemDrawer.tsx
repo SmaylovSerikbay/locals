@@ -72,7 +72,7 @@ export default function ItemDrawer() {
         <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[1000] backdrop-blur-sm" />
         <Drawer.Content 
             className="bg-white flex flex-col rounded-t-[32px] fixed bottom-0 left-0 right-0 z-[1001] outline-none shadow-[0_-10px_40px_rgba(0,0,0,0.1)]"
-            style={{ height: 'auto', maxHeight: '90dvh' }}
+            style={{ minHeight: '50vh', maxHeight: '90vh' }}
         >
           
           {/* Header Image / Actions */}
