@@ -112,23 +112,36 @@ function LocationSelector() {
 
   return (
     <>
-      {/* Center Target Indicator */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[400] pointer-events-none -mt-8 flex flex-col items-center justify-center">
-         <div className={`relative transition-all duration-300 ${isMoving ? 'scale-110 opacity-80' : 'scale-100 opacity-100'}`}>
-            <div className="w-4 h-4 bg-black rounded-full shadow-lg border-2 border-white z-10 relative"></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-black/10 rounded-full animate-pulse"></div>
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-1 h-8 bg-linear-to-b from-black to-transparent opacity-30"></div>
+      {/* Thought Bubble Target Indicator (NPC Style) */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[400] pointer-events-none -mt-[80px] flex flex-col items-center">
+         
+         <div className={`transition-all duration-300 flex flex-col items-center ${isMoving ? 'scale-110 -translate-y-2' : 'scale-100 translate-y-0'}`}>
+             {/* The Bubble */}
+             <div className="bg-white px-6 py-3 rounded-full shadow-xl border-2 border-gray-100 relative mb-1">
+                 <span className="font-bold text-gray-800 text-sm whitespace-nowrap flex items-center gap-2">
+                    🤔 {t('confirm_location').replace('Confirm Location', 'Move map to place pin')}
+                 </span>
+             </div>
+             
+             {/* Thought Dots */}
+             <div className="w-3 h-3 bg-white rounded-full shadow-md border border-gray-100 mb-1"></div>
+             <div className="w-1.5 h-1.5 bg-white rounded-full shadow-md border border-gray-100"></div>
          </div>
-         <div className="mt-4 bg-black/70 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full font-medium shadow-lg transition-opacity duration-200" style={{ opacity: isMoving ? 0 : 1 }}>
-            Перемещай карту
-         </div>
+
+      </div>
+      
+      {/* Target Pin (The 'Head' of the thinker) */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[400] pointer-events-none -mt-4">
+          <div className="w-4 h-4 bg-black rounded-full shadow-lg border-2 border-white relative z-10"></div>
+          {/* Shadow/Grounding */}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-black/20 rounded-full blur-[2px]"></div>
       </div>
 
       {/* Confirm Button */}
       <div className="absolute bottom-36 left-0 right-0 z-[400] flex justify-center pointer-events-none px-4">
          <button 
            onClick={handleConfirm}
-           className="group pointer-events-auto bg-black text-white px-6 py-4 rounded-4xl font-bold shadow-2xl flex items-center gap-3 active:scale-95 transition-all duration-300 hover:shadow-black/20 w-full max-w-[280px] justify-center"
+           className="group pointer-events-auto bg-black text-white px-6 py-4 rounded-[32px] font-bold shadow-2xl flex items-center gap-3 active:scale-95 transition-all duration-300 hover:shadow-black/20 w-full max-w-[280px] justify-center"
          >
            <span className="text-lg">{t('confirm_location')}</span>
            <div className="bg-white/20 rounded-full p-1 group-hover:bg-white/30 transition-colors">
@@ -173,7 +186,7 @@ export default function Map() {
                 >
                     <span className="font-bold text-xs">All</span>
                 </button>
-                <div className="h-[1px] w-6 bg-gray-100"></div>
+                <div className="h-px w-6 bg-gray-100"></div>
                 <button 
                     onClick={() => setFilter('TASK')}
                     className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${filter === 'TASK' ? 'bg-[#FEF9C3] text-yellow-800 shadow-sm' : 'text-gray-400 hover:bg-gray-100'}`}

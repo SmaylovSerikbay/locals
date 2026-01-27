@@ -4,18 +4,84 @@ import { Drawer } from 'vaul';
 import { useCreateStore } from '@/store/useCreateStore';
 import { useItemsStore } from '@/store/useItemsStore';
 import { useTranslations } from 'next-intl';
-import { ArrowRight, Type, AlignLeft, Calendar, MapPin, DollarSign, Sparkles, HandHelping, PartyPopper, ChevronRight } from 'lucide-react';
+import { ArrowRight, Type, AlignLeft, Calendar, MapPin, DollarSign, Sparkles, ChevronRight, Clock, ChevronLeft } from 'lucide-react';
 import { Currency } from '@/store/useItemsStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 const CURRENCIES: Currency[] = ['USD', 'KZT', 'RUB', 'EUR'];
+
+// Simple Custom Date Picker Component
+function CustomDatePicker({ value, onChange }: { value: string, onChange: (val: string) => void }) {
+    const [view, setView] = useState<'PRESET' | 'CUSTOM'>('PRESET');
+    
+    // Helper to format ISO string for display
+    const formatDisplay = (iso: string) => {
+        if (!iso) return 'Select time';
+        const date = new Date(iso);
+        return date.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    };
+
+    const handlePreset = (offsetDays: number, hour: number) => {
+        const date = new Date();
+        date.setDate(date.getDate() + offsetDays);
+        date.setHours(hour, 0, 0, 0);
+        // Adjust to local ISO string (simple hack)
+        const tzOffset = date.getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(date.getTime() - tzOffset)).toISOString().slice(0, 16);
+        onChange(localISOTime);
+    };
+
+    return (
+        <div className="w-full">
+            <div className="flex items-center gap-3 px-4 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm mb-3">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                    <Calendar className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">When</div>
+                    <div className="text-lg font-bold text-gray-900">{value ? formatDisplay(value) : 'Pick a time'}</div>
+                </div>
+            </div>
+
+            {/* Quick Presets */}
+            <div className="grid grid-cols-2 gap-2 mb-2">
+                <button onClick={() => handlePreset(0, 18)} className="bg-white p-3 rounded-xl border border-gray-100 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">
+                    🌙 Tonight (18:00)
+                </button>
+                <button onClick={() => handlePreset(1, 19)} className="bg-white p-3 rounded-xl border border-gray-100 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">
+                    🚀 Tomorrow (19:00)
+                </button>
+                <button onClick={() => handlePreset(0, new Date().getHours() + 1)} className="bg-white p-3 rounded-xl border border-gray-100 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">
+                    ⚡ In 1 hour
+                </button>
+                <button onClick={() => setView(view === 'CUSTOM' ? 'PRESET' : 'CUSTOM')} className="bg-blue-50 p-3 rounded-xl border border-blue-100 text-sm font-bold text-blue-700 hover:bg-blue-100 transition-colors">
+                    📅 Custom...
+                </button>
+            </div>
+
+            {/* Native Picker Fallback (Styled better) */}
+            {view === 'CUSTOM' && (
+                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
+                    <input 
+                        type="datetime-local"
+                        className="w-full p-3 bg-gray-50 rounded-xl font-bold text-gray-700 outline-none border border-gray-200"
+                        value={value}
+                        onChange={(e) => onChange(e.target.value)}
+                    />
+                 </motion.div>
+            )}
+        </div>
+    );
+}
 
 export default function CreateDrawer() {
   const { isOpen, setIsOpen, step, setStep, setType, type, location, formData, setFormData, reset } = useCreateStore();
   const { addItem } = useItemsStore();
   const t = useTranslations('CreateFlow');
-  const dateInputRef = useRef<HTMLInputElement>(null);
+  
+  // Ref for managing viewport/keyboard issues
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = () => {
     if (!type || !location) return;
@@ -45,29 +111,25 @@ export default function CreateDrawer() {
 
   const isTask = type === 'TASK';
 
-  const handleDateClick = () => {
-    if (dateInputRef.current) {
-        if ('showPicker' in HTMLInputElement.prototype) {
-            try {
-                dateInputRef.current.showPicker();
-            } catch (e) {
-                dateInputRef.current.focus();
-            }
-        } else {
-            dateInputRef.current.focus();
-        }
-    }
-  };
-
   return (
-    <Drawer.Root open={isOpen && step !== 2} onOpenChange={setIsOpen} shouldScaleBackground>
+    <Drawer.Root 
+        open={isOpen && step !== 2} 
+        onOpenChange={setIsOpen} 
+        shouldScaleBackground
+        // disablePreventScroll // Sometimes helps with keyboard layout shifts on mobile
+    >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[1000] backdrop-blur-sm" />
-        <Drawer.Content className="bg-[#F2F2F7] flex flex-col rounded-t-[30px] fixed bottom-0 left-0 right-0 z-[1001] outline-none max-h-[85vh] shadow-2xl">
+        <Drawer.Content className="bg-[#F2F2F7] flex flex-col rounded-t-[32px] fixed bottom-0 left-0 right-0 z-[1001] outline-none max-h-[90dvh] shadow-2xl">
           
           <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mt-3 mb-2 z-20" />
 
-          <div className="p-6 flex-1 overflow-y-auto">
+          {/* Wrapper with explicit height management for keyboard */}
+          <div 
+            ref={contentRef}
+            className="flex-1 overflow-y-auto p-6"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+          >
             
             {step === 1 && (
               <motion.div 
@@ -179,31 +241,10 @@ export default function CreateDrawer() {
                              </div>
                           </div>
                       ) : (
-                          <div className="relative group">
-                              <div 
-                                onClick={handleDateClick}
-                                className="flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-gray-50 rounded-xl transition-colors"
-                              >
-                                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                                    <Calendar className="w-5 h-5 text-blue-600" />
-                                  </div>
-                                  <div className="flex-1">
-                                      <div className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">When</div>
-                                      <div className={`text-lg font-bold ${formData.date ? 'text-gray-900' : 'text-gray-300'}`}>
-                                          {formData.date ? new Date(formData.date).toLocaleString() : 'Select date & time'}
-                                      </div>
-                                  </div>
-                                  <div className="bg-gray-100 px-3 py-1 rounded-full text-xs font-bold text-gray-500">Edit</div>
-                              </div>
-                              
-                              {/* Hidden Native Input */}
-                              <input 
-                                ref={dateInputRef}
-                                type="datetime-local"
-                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                                value={formData.date}
-                                onChange={(e) => setFormData({ date: e.target.value })}
-                                style={{ visibility: 'hidden', position: 'absolute' }} 
+                          <div className="p-2">
+                              <CustomDatePicker 
+                                  value={formData.date} 
+                                  onChange={(val) => setFormData({ date: val })} 
                               />
                           </div>
                       )}
@@ -221,7 +262,7 @@ export default function CreateDrawer() {
 
                   <button 
                     onClick={handleSubmit}
-                    className="w-full py-4 bg-black text-white rounded-[24px] font-bold text-lg hover:bg-gray-900 active:scale-95 transition-all mt-2 shadow-xl shadow-black/20 flex items-center justify-center gap-2 group"
+                    className="w-full py-4 bg-black text-white rounded-[24px] font-bold text-lg hover:bg-gray-900 active:scale-95 transition-all mt-2 shadow-xl shadow-black/20 flex items-center justify-center gap-2 group mb-4"
                   >
                     {t('create_btn')}
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

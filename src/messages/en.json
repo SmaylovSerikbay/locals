@@ -12,7 +12,7 @@
     "task_label": "Help needed (Task)",
     "event_label": "Hangout (Dvizh)",
     "step_2_title": "Where?",
-    "confirm_location": "Confirm Location",
+    "confirm_location": "Set Location",
     "step_3_title": "Details",
     "title_label": "Title",
     "desc_label": "Description",
@@ -36,8 +36,10 @@
     "offline": "Offline"
   },
   "ItemDetails": {
-    "join": "Join",
-    "respond": "Respond",
-    "hosted_by": "Hosted by"
+    "join": "I'm in! ✋",
+    "respond": "I'll help! 🤝",
+    "hosted_by": "Hosted by",
+    "going": "Going",
+    "chat": "Chat"
   }
 }

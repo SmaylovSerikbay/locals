@@ -2,7 +2,7 @@
 
 import { Drawer } from 'vaul';
 import { useItemsStore, Response } from '@/store/useItemsStore';
-import { Calendar, Clock, Star, X, MapPin, Share2, Heart, CheckCircle, Briefcase, ArrowLeft } from 'lucide-react';
+import { Calendar, Clock, Star, X, MapPin, Share2, Heart, CheckCircle, Briefcase, ArrowLeft, Users, MessageCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useUserStore } from '@/store/useUserStore';
 import { useState } from 'react';
@@ -31,6 +31,9 @@ export default function ItemDrawer() {
   const isOwner = user ? String(user.id) === selectedItem.author.id : false;
   const isCompleted = selectedItem.status === 'COMPLETED';
 
+  // Mock participants for events (random from responses or just placeholders)
+  const participants = selectedItem.responses.filter(r => r.status === 'ACCEPTED');
+  
   // Handling responses
   const handleRespond = () => {
       if (!user) return;
@@ -146,6 +149,39 @@ export default function ItemDrawer() {
                             </p>
                         </div>
 
+                        {/* Participants Section (For Events) */}
+                        {!isTask && (
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+                                        <Users className="w-5 h-5 text-gray-400" />
+                                        {t('going')}
+                                        <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs">
+                                            {participants.length + 1}
+                                        </span>
+                                    </h3>
+                                    <button className="text-blue-600 font-bold text-sm">See all</button>
+                                </div>
+                                <div className="flex items-center -space-x-3 overflow-hidden py-2">
+                                    {/* Author */}
+                                    <img 
+                                        src={selectedItem.author.avatarUrl} 
+                                        className="w-12 h-12 rounded-full border-2 border-white object-cover"
+                                        title={selectedItem.author.name}
+                                    />
+                                    {/* Other participants (mock) */}
+                                    {[1,2,3].map((_, i) => (
+                                        <div key={i} className="w-12 h-12 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
+                                            ?
+                                        </div>
+                                    ))}
+                                    <button className="w-12 h-12 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-gray-600 font-bold text-sm hover:bg-gray-200 transition-colors">
+                                        +5
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Author Card */}
                         <div className="space-y-3">
                              <h3 className="font-bold text-gray-900 text-lg">{t('hosted_by')}</h3>
@@ -162,8 +198,8 @@ export default function ItemDrawer() {
                                         <span>{selectedItem.author.reputation}</span>
                                     </div>
                                 </div>
-                                <button className="px-4 py-2 bg-black text-white rounded-full text-sm font-bold">
-                                    Profile
+                                <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
+                                    <MessageCircle className="w-5 h-5 text-gray-600" />
                                 </button>
                              </div>
                         </div>
