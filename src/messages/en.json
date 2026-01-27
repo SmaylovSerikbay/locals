@@ -1,0 +1,21 @@
+{
+  "HomePage": {
+    "title": "LOCALS",
+    "search_placeholder": "Search nearby...",
+    "tasks": "Tasks",
+    "events": "Dvizh"
+  },
+  "CreateFlow": {
+    "step_1_title": "What are we doing?",
+    "task_label": "Help needed (Task)",
+    "event_label": "Hangout (Dvizh)",
+    "step_2_title": "Where?",
+    "confirm_location": "Confirm Location",
+    "step_3_title": "Details",
+    "title_label": "Title",
+    "desc_label": "Description",
+    "price_label": "Price (KZT)",
+    "date_label": "Date",
+    "create_btn": "Publish"
+  }
+}
