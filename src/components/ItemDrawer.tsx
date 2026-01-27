@@ -54,11 +54,20 @@ export default function ItemDrawer() {
   };
 
   const handleChat = () => {
-      // Logic to find or create chat for this item/user
-      // For now, we just open the chat list to simulate "Clan/Group" chat
+      if (!selectedItem) return;
+      
+      // Find existing group chat for this item
+      let groupChat = chats.find(c => c.itemId === selectedItem.id && c.isGroupChat);
+      
+      // If no group chat exists, create it
+      if (!groupChat) {
+          const { createGroupChat } = useChatStore.getState();
+          groupChat = createGroupChat(selectedItem.id, selectedItem.title, selectedItem.type);
+      }
+      
+      // Open the chat
       setSelectedItem(null);
-      setChatListOpen(true);
-      // Ideally: openChat(createdChatId);
+      openChat(groupChat.id);
   };
 
   return (

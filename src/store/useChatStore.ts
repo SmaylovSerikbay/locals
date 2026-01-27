@@ -10,15 +10,23 @@ export interface Message {
 
 export interface Chat {
   id: string;
-  participant: {
+  itemId?: string; // Link to the item (for clan chats)
+  isGroupChat: boolean;
+  participant?: {
     id: string;
     name: string;
     avatarUrl: string;
     isOnline: boolean;
   };
+  groupInfo?: {
+    name: string;
+    avatarUrl: string;
+    participantCount: number;
+  };
   lastMessage: Message;
   unreadCount: number;
   messages: Message[];
+  telegramGroupLink?: string; // For future Telegram integration
 }
 
 interface ChatState {
@@ -29,12 +37,14 @@ interface ChatState {
   openChat: (chatId: string) => void;
   closeChat: () => void;
   sendMessage: (chatId: string, text: string) => void;
+  createGroupChat: (itemId: string, itemTitle: string, itemType: string) => Chat;
 }
 
 // Mock Data
 const MOCK_CHATS: Chat[] = [
   {
     id: '1',
+    isGroupChat: false,
     participant: {
       id: 'u2',
       name: 'Алексей',
@@ -65,48 +75,15 @@ const MOCK_CHATS: Chat[] = [
         isRead: false
       }
     ]
-  },
-  {
-    id: '2',
-    participant: {
-      id: 'u3',
-      name: 'Мария',
-      avatarUrl: 'https://i.pravatar.cc/150?u=2',
-      isOnline: false
-    },
-    unreadCount: 0,
-    lastMessage: {
-      id: 'm4',
-      senderId: 'me',
-      text: 'Круто, спасибо за игру!',
-      timestamp: '2023-10-26T20:15:00',
-      isRead: true
-    },
-    messages: [
-      {
-        id: 'm3',
-        senderId: 'u3',
-        text: 'Было весело вчера!',
-        timestamp: '2023-10-26T10:00:00',
-        isRead: true
-      },
-      {
-        id: 'm4',
-        senderId: 'me',
-        text: 'Круто, спасибо за игру!',
-        timestamp: '2023-10-26T20:15:00',
-        isRead: true
-      }
-    ]
   }
 ];
 
-export const useChatStore = create<ChatState>((set) => ({
+export const useChatStore = create<ChatState>((set, get) => ({
   chats: MOCK_CHATS,
   activeChatId: null,
   isChatListOpen: false,
   setChatListOpen: (isOpen) => set({ isChatListOpen: isOpen }),
-  openChat: (chatId) => set({ activeChatId: chatId }),
+  openChat: (chatId) => set({ activeChatId: chatId, isChatListOpen: true }),
   closeChat: () => set({ activeChatId: null }),
   sendMessage: (chatId, text) => set((state) => {
     const newMessage: Message = {
@@ -129,5 +106,62 @@ export const useChatStore = create<ChatState>((set) => ({
     });
 
     return { chats: updatedChats };
-  })
+  }),
+  createGroupChat: (itemId, itemTitle, itemType) => {
+      const newChat: Chat = {
+          id: `group_${itemId}`,
+          itemId,
+          isGroupChat: true,
+          groupInfo: {
+              name: `${itemType === 'EVENT' ? '🎉' : '📦'} ${itemTitle}`,
+              avatarUrl: 'https://api.dicebear.com/7.x/shapes/svg?seed=' + itemId,
+              participantCount: 1
+          },
+          unreadCount: 0,
+          lastMessage: {
+              id: 'welcome',
+              senderId: 'system',
+              text: `Welcome to the ${itemType === 'EVENT' ? 'event' : 'task'} chat!`,
+              timestamp: new Date().toISOString(),
+              isRead: true
+          },
+          messages: [
+              {
+                  id: 'welcome',
+                  senderId: 'system',
+                  text: `Welcome! Discuss and coordinate here. Messages sync with Telegram group.`,
+                  timestamp: new Date().toISOString(),
+                  isRead: true
+              }
+          ],
+          telegramGroupLink: undefined
+      };
+
+      set((state) => ({
+          chats: [...state.chats, newChat]
+      }));
+
+      // Call API to create Telegram group (async, non-blocking)
+      fetch('/api/telegram/create-group', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ itemId, title: itemTitle, itemType })
+      })
+      .then(res => res.json())
+      .then(data => {
+          if (data.deepLink) {
+              // Update chat with Telegram link
+              set((state) => ({
+                  chats: state.chats.map(c => 
+                      c.id === `group_${itemId}` 
+                      ? { ...c, telegramGroupLink: data.deepLink }
+                      : c
+                  )
+              }));
+          }
+      })
+      .catch(err => console.error('Failed to create Telegram group:', err));
+
+      return newChat;
+  }
 }));

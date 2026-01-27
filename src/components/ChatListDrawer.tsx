@@ -3,7 +3,7 @@
 import { Drawer } from 'vaul';
 import { useChatStore } from '@/store/useChatStore';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, ExternalLink } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 export default function ChatListDrawer() {
@@ -48,15 +48,23 @@ export default function ChatListDrawer() {
                          </button>
                          <div className="flex items-center gap-3">
                             <div className="relative">
-                                <img src={activeChat.participant.avatarUrl} className="w-10 h-10 rounded-full bg-gray-200 object-cover" />
-                                {activeChat.participant.isOnline && (
+                                <img 
+                                    src={activeChat.isGroupChat ? activeChat.groupInfo?.avatarUrl : activeChat.participant?.avatarUrl} 
+                                    className="w-10 h-10 rounded-full bg-gray-200 object-cover" 
+                                />
+                                {!activeChat.isGroupChat && activeChat.participant?.isOnline && (
                                     <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                                 )}
                             </div>
                             <div>
-                                <h3 className="font-bold text-base leading-tight">{activeChat.participant.name}</h3>
+                                <h3 className="font-bold text-base leading-tight">
+                                    {activeChat.isGroupChat ? activeChat.groupInfo?.name : activeChat.participant?.name}
+                                </h3>
                                 <span className="text-xs text-gray-500">
-                                    {activeChat.participant.isOnline ? t('online') : t('offline')}
+                                    {activeChat.isGroupChat 
+                                        ? `${activeChat.groupInfo?.participantCount} members`
+                                        : (activeChat.participant?.isOnline ? t('online') : t('offline'))
+                                    }
                                 </span>
                             </div>
                          </div>
@@ -81,14 +89,24 @@ export default function ChatListDrawer() {
                                 className="w-full bg-white p-4 rounded-2xl flex items-center gap-4 hover:bg-gray-50 active:scale-[0.98] transition-all shadow-sm border border-gray-100"
                             >
                                 <div className="relative flex-shrink-0">
-                                    <img src={chat.participant.avatarUrl} className="w-14 h-14 rounded-full bg-gray-200 object-cover" />
-                                    {chat.participant.isOnline && (
+                                    <img 
+                                        src={chat.isGroupChat ? chat.groupInfo?.avatarUrl : chat.participant?.avatarUrl} 
+                                        className="w-14 h-14 rounded-full bg-gray-200 object-cover" 
+                                    />
+                                    {!chat.isGroupChat && chat.participant?.isOnline && (
                                         <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-[3px] border-white"></div>
+                                    )}
+                                    {chat.isGroupChat && (
+                                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold border-2 border-white">
+                                            {chat.groupInfo?.participantCount}
+                                        </div>
                                     )}
                                 </div>
                                 <div className="flex-1 min-w-0 text-left">
                                     <div className="flex justify-between items-baseline mb-1">
-                                        <h3 className="font-bold text-gray-900 truncate">{chat.participant.name}</h3>
+                                        <h3 className="font-bold text-gray-900 truncate">
+                                            {chat.isGroupChat ? chat.groupInfo?.name : chat.participant?.name}
+                                        </h3>
                                         <span className="text-xs text-gray-400 whitespace-nowrap">
                                             {new Date(chat.lastMessage.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                         </span>
@@ -108,6 +126,18 @@ export default function ChatListDrawer() {
                     <div className="p-4 space-y-4">
                         {activeChat.messages.map((msg, index) => {
                             const isMe = msg.senderId === 'me';
+                            const isSystem = msg.senderId === 'system';
+                            
+                            if (isSystem) {
+                                return (
+                                    <div key={msg.id} className="flex justify-center">
+                                        <div className="bg-gray-100 text-gray-500 px-4 py-2 rounded-full text-xs font-medium">
+                                            {msg.text}
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            
                             return (
                                 <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                     <div 
@@ -133,7 +163,20 @@ export default function ChatListDrawer() {
             {/* Input Area (Only in Active Chat) */}
             {activeChat && (
                 <div className="p-4 bg-white border-t border-gray-100 pb-8">
-                    <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-[2rem] border border-gray-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+                    {/* Telegram Group Link (For Group Chats) */}
+                    {activeChat.isGroupChat && activeChat.telegramGroupLink && (
+                        <a 
+                            href={activeChat.telegramGroupLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-bold text-sm mb-3 hover:bg-blue-100 transition-colors"
+                        >
+                            <ExternalLink className="w-4 h-4" />
+                            Open in Telegram
+                        </a>
+                    )}
+                    
+                    <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-4xl border border-gray-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
                         <input 
                             className="flex-1 bg-transparent px-4 py-2 outline-none text-base placeholder:text-gray-400"
                             placeholder={t('type_message')}
