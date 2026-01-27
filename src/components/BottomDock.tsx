@@ -3,10 +3,12 @@
 import { Search, Plus, User, MessageCircle } from 'lucide-react';
 import { useCreateStore } from '@/store/useCreateStore';
 import { useUserStore } from '@/store/useUserStore';
+import { useChatStore } from '@/store/useChatStore';
 
 export default function BottomDock() {
   const { setIsOpen, reset } = useCreateStore();
   const { setProfileOpen } = useUserStore();
+  const { setChatListOpen } = useChatStore();
 
   const handleCreateClick = () => {
     reset();
@@ -21,7 +23,10 @@ export default function BottomDock() {
           <Search className="w-6 h-6 text-gray-600" />
         </button>
         
-        <button className="flex flex-col items-center justify-center w-12 h-12 rounded-xl hover:bg-gray-100/50 transition-colors gap-1">
+        <button 
+          onClick={() => setChatListOpen(true)}
+          className="flex flex-col items-center justify-center w-12 h-12 rounded-xl hover:bg-gray-100/50 transition-colors gap-1"
+        >
           <MessageCircle className="w-6 h-6 text-gray-600" />
         </button>
 

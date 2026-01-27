@@ -25,5 +25,12 @@
     "instagram_placeholder": "@username",
     "language": "Language",
     "save": "Save"
+  },
+  "Chats": {
+    "title": "Messages",
+    "search_placeholder": "Search messages...",
+    "type_message": "Type a message...",
+    "online": "Online",
+    "offline": "Offline"
   }
 }

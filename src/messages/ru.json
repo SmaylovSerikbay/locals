@@ -25,5 +25,12 @@
     "instagram_placeholder": "@username",
     "language": "Язык приложения",
     "save": "Сохранить"
+  },
+  "Chats": {
+    "title": "Сообщения",
+    "search_placeholder": "Поиск сообщений...",
+    "type_message": "Напишите сообщение...",
+    "online": "В сети",
+    "offline": "Был(а) недавно"
   }
 }
