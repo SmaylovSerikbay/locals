@@ -2,9 +2,11 @@
 
 import { Search, Plus, User, MessageCircle } from 'lucide-react';
 import { useCreateStore } from '@/store/useCreateStore';
+import { useUserStore } from '@/store/useUserStore';
 
 export default function BottomDock() {
   const { setIsOpen, reset } = useCreateStore();
+  const { setProfileOpen } = useUserStore();
 
   const handleCreateClick = () => {
     reset();
@@ -30,7 +32,10 @@ export default function BottomDock() {
           <Plus className="w-7 h-7" />
         </button>
 
-        <button className="flex flex-col items-center justify-center w-12 h-12 rounded-xl hover:bg-gray-100/50 transition-colors gap-1">
+        <button 
+          onClick={() => setProfileOpen(true)}
+          className="flex flex-col items-center justify-center w-12 h-12 rounded-xl hover:bg-gray-100/50 transition-colors gap-1"
+        >
           <User className="w-6 h-6 text-gray-600" />
         </button>
         

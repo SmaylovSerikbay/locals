@@ -17,5 +17,13 @@
     "price_label": "Цена (KZT)",
     "date_label": "Дата",
     "create_btn": "Опубликовать"
+  },
+  "Profile": {
+    "title": "Мой Профиль",
+    "reputation": "Репутация",
+    "instagram_label": "Instagram Username",
+    "instagram_placeholder": "@username",
+    "language": "Язык приложения",
+    "save": "Сохранить"
   }
 }

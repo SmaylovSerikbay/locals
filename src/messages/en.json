@@ -17,5 +17,13 @@
     "price_label": "Price (KZT)",
     "date_label": "Date",
     "create_btn": "Publish"
+  },
+  "Profile": {
+    "title": "My Profile",
+    "reputation": "Reputation",
+    "instagram_label": "Instagram Username",
+    "instagram_placeholder": "@username",
+    "language": "Language",
+    "save": "Save"
   }
 }
