@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useUserStore } from '@/store/useUserStore';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import SlideButton from '@/components/ui/SlideButton';
 
 export default function ItemDrawer() {
   const { selectedItem, setSelectedItem, addResponse, updateResponseStatus, completeItem } = useItemsStore();
@@ -59,6 +60,9 @@ export default function ItemDrawer() {
              <div className="absolute top-4 right-4 flex gap-2 z-10">
                 <button className="w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm active:scale-90">
                     <Share2 className="w-5 h-5 text-gray-700" />
+                </button>
+                <button className="w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm active:scale-90">
+                    <Heart className="w-5 h-5 text-gray-700" />
                 </button>
                 <button onClick={() => setSelectedItem(null)} className="w-10 h-10 bg-black/10 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black/20 transition-colors active:scale-90 text-white">
                     <X className="w-5 h-5" />
@@ -223,24 +227,22 @@ export default function ItemDrawer() {
           <div className="p-4 border-t border-gray-100 bg-white pb-8 sticky bottom-0 z-20">
              {isOwner ? (
                  selectedItem.status === 'IN_PROGRESS' ? (
-                     <button 
-                        onClick={() => completeItem(selectedItem.id)}
-                        className="w-full py-4 bg-green-500 text-white rounded-[24px] font-bold text-xl hover:bg-green-600 transition-all active:scale-[0.98] shadow-lg shadow-green-500/30 flex items-center justify-center gap-2"
-                     >
-                        <CheckCircle className="w-6 h-6" /> Complete Task
-                     </button>
+                     <SlideButton 
+                        text="Slide to Complete"
+                        onSuccess={() => completeItem(selectedItem.id)}
+                        className="bg-green-100"
+                        icon={<CheckCircle className="w-6 h-6 text-white" />}
+                     />
                  ) : (
-                    <button className="w-full py-4 bg-gray-100 text-gray-400 rounded-[24px] font-bold text-xl cursor-not-allowed flex items-center justify-center gap-2">
+                    <div className="w-full py-4 bg-gray-100 text-gray-400 rounded-[24px] font-bold text-xl cursor-not-allowed flex items-center justify-center gap-2">
                         Waiting for action...
-                    </button>
+                    </div>
                  )
              ) : (
-                 <button 
-                    onClick={handleRespond}
-                    className="w-full py-4 bg-black text-white rounded-[24px] font-bold text-xl hover:bg-gray-900 transition-all active:scale-[0.98] shadow-lg shadow-black/20 flex items-center justify-center gap-2"
-                 >
-                    {isTask ? t('respond') : t('join')}
-                 </button>
+                 <SlideButton 
+                    text={isTask ? t('respond') : t('join')}
+                    onSuccess={handleRespond}
+                 />
              )}
           </div>
 

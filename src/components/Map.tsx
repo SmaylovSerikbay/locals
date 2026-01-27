@@ -9,7 +9,8 @@ import { useTranslations } from 'next-intl';
 import ItemDrawer from './ItemDrawer';
 import CreateDrawer from './CreateDrawer';
 import { useEffect, useState } from 'react';
-import { Check, Navigation } from 'lucide-react';
+import { Check, Navigation, Filter } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Custom Marker Icons
 const createCustomIcon = (emoji: string, color: string) => {
@@ -117,7 +118,7 @@ function LocationSelector() {
          <div className={`relative transition-all duration-300 ${isMoving ? 'scale-110 opacity-80' : 'scale-100 opacity-100'}`}>
             <div className="w-4 h-4 bg-black rounded-full shadow-lg border-2 border-white z-10 relative"></div>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-black/10 rounded-full animate-pulse"></div>
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-1 h-8 bg-linear-to-b from-black to-transparent opacity-30"></div>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-1 h-8 bg-gradient-to-b from-black to-transparent opacity-30"></div>
          </div>
          <div className="mt-4 bg-black/70 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full font-medium shadow-lg transition-opacity duration-200" style={{ opacity: isMoving ? 0 : 1 }}>
             Перемещай карту
@@ -128,7 +129,7 @@ function LocationSelector() {
       <div className="absolute bottom-36 left-0 right-0 z-[400] flex justify-center pointer-events-none px-4">
          <button 
            onClick={handleConfirm}
-           className="group pointer-events-auto bg-black text-white px-6 py-4 rounded-4xl font-bold shadow-2xl flex items-center gap-3 active:scale-95 transition-all duration-300 hover:shadow-black/20 w-full max-w-[280px] justify-center"
+           className="group pointer-events-auto bg-black text-white px-6 py-4 rounded-[32px] font-bold shadow-2xl flex items-center gap-3 active:scale-95 transition-all duration-300 hover:shadow-black/20 w-full max-w-[280px] justify-center"
          >
            <span className="text-lg">{t('confirm_location')}</span>
            <div className="bg-white/20 rounded-full p-1 group-hover:bg-white/30 transition-colors">
@@ -142,13 +143,16 @@ function LocationSelector() {
 
 export default function Map() {
   const { items, setSelectedItem } = useItemsStore();
+  const [filter, setFilter] = useState<'ALL' | 'TASK' | 'EVENT'>('ALL');
+
+  const filteredItems = items.filter(item => filter === 'ALL' || item.type === filter);
 
   return (
     <>
       <MapContainer 
         center={[43.238949, 76.889709]} // Almaty coordinates fallback
         zoom={13} 
-        className="h-dvh w-full z-0 bg-[#f5f5f5]" // Fallback color matching Voyager
+        className="h-[100dvh] w-full z-0 bg-[#f5f5f5]" // Fallback color matching Voyager
         zoomControl={false}
       >
         <TileLayer
@@ -161,7 +165,33 @@ export default function Map() {
         <UserLocationHandler />
         <LocationSelector />
 
-        {items.map((item) => (
+        {/* Filter Controls */}
+        <div className="absolute top-4 left-0 right-0 z-[400] flex justify-center pointer-events-none">
+            <div className="bg-white p-1.5 rounded-full shadow-lg pointer-events-auto flex gap-1 border border-gray-100">
+                <button 
+                    onClick={() => setFilter('ALL')}
+                    className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${filter === 'ALL' ? 'bg-black text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                    All
+                </button>
+                <button 
+                    onClick={() => setFilter('TASK')}
+                    className={`px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-1.5 ${filter === 'TASK' ? 'bg-[#FEF9C3] text-yellow-800 shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                    <span>📦</span>
+                    Tasks
+                </button>
+                <button 
+                    onClick={() => setFilter('EVENT')}
+                    className={`px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-1.5 ${filter === 'EVENT' ? 'bg-[#DBEAFE] text-blue-800 shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                    <span>🎉</span>
+                    Dvizh
+                </button>
+            </div>
+        </div>
+
+        {filteredItems.map((item) => (
           <Marker 
             key={item.id} 
             position={item.location}
