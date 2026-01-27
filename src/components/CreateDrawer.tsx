@@ -4,7 +4,7 @@ import { Drawer } from 'vaul';
 import { useCreateStore } from '@/store/useCreateStore';
 import { useItemsStore } from '@/store/useItemsStore';
 import { useTranslations } from 'next-intl';
-import { ArrowRight, Type, AlignLeft, Calendar, MapPin, DollarSign } from 'lucide-react';
+import { ArrowRight, Type, AlignLeft, Calendar, MapPin, DollarSign, Sparkles, HandHelping, PartyPopper } from 'lucide-react';
 import { Currency } from '@/store/useItemsStore';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -55,27 +55,56 @@ export default function CreateDrawer() {
             
             {step === 1 && (
               <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="pb-8 pt-4"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="pb-8 pt-2"
               >
-                <h2 className="text-3xl font-extrabold text-center mb-8 text-gray-900 tracking-tight">{t('step_1_title')}</h2>
+                <h2 className="text-3xl font-extrabold text-left mb-6 text-gray-900 tracking-tight flex items-center gap-2">
+                    <Sparkles className="w-8 h-8 text-yellow-500 fill-yellow-500" />
+                    {t('step_1_title')}
+                </h2>
                 
-                {/* Compact Toggle / Segmented Control */}
-                <div className="bg-gray-200 p-1.5 rounded-[20px] flex gap-2 mb-8">
+                <div className="flex flex-col gap-4">
+                     {/* Task Card */}
                      <button 
                         onClick={() => { setType('TASK'); setStep(2); setIsOpen(false); }}
-                        className="flex-1 flex items-center justify-center gap-2 py-4 rounded-[16px] bg-white shadow-sm active:scale-95 transition-all"
+                        className="relative w-full h-48 rounded-[32px] overflow-hidden group shadow-lg transition-transform active:scale-[0.98]"
                      >
-                         <span className="text-2xl">📦</span>
-                         <span className="font-bold text-gray-900 text-lg">{t('task_label')}</span>
+                         <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-pink-500"></div>
+                         <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors"></div>
+                         
+                         <div className="absolute top-6 left-6 text-white text-left z-10">
+                             <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full w-fit mb-3">
+                                 <HandHelping className="w-5 h-5 text-white" />
+                             </div>
+                             <h3 className="text-3xl font-bold mb-1">{t('task_label')}</h3>
+                             <p className="opacity-90 font-medium">Find neighbors to help <br/> with daily tasks.</p>
+                         </div>
+                         
+                         <div className="absolute -bottom-4 -right-4 text-[120px] opacity-20 rotate-12 select-none pointer-events-none">
+                             📦
+                         </div>
                      </button>
+
+                     {/* Event Card */}
                      <button 
                         onClick={() => { setType('EVENT'); setStep(2); setIsOpen(false); }}
-                        className="flex-1 flex items-center justify-center gap-2 py-4 rounded-[16px] bg-white/50 hover:bg-white shadow-sm active:scale-95 transition-all text-gray-500 hover:text-gray-900"
+                        className="relative w-full h-48 rounded-[32px] overflow-hidden group shadow-lg transition-transform active:scale-[0.98]"
                      >
-                         <span className="text-2xl">🎉</span>
-                         <span className="font-bold text-lg">{t('event_label')}</span>
+                         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600"></div>
+                         <div className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors"></div>
+                         
+                         <div className="absolute top-6 left-6 text-white text-left z-10">
+                             <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full w-fit mb-3">
+                                 <PartyPopper className="w-5 h-5 text-white" />
+                             </div>
+                             <h3 className="text-3xl font-bold mb-1">{t('event_label')}</h3>
+                             <p className="opacity-90 font-medium">Sports, parties, and <br/> gathering together.</p>
+                         </div>
+
+                         <div className="absolute -bottom-4 -right-4 text-[120px] opacity-20 rotate-12 select-none pointer-events-none">
+                             🎉
+                         </div>
                      </button>
                 </div>
               </motion.div>
