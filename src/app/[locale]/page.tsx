@@ -3,6 +3,7 @@ import MapWrapper from '@/components/MapWrapper';
 import TelegramInit from '@/components/TelegramInit';
 import ProfileDrawer from '@/components/ProfileDrawer';
 import ChatListDrawer from '@/components/ChatListDrawer';
+import SearchDrawer from '@/components/SearchDrawer';
 
 export default function HomePage() {
   return (
@@ -12,6 +13,7 @@ export default function HomePage() {
       <BottomDock />
       <ProfileDrawer />
       <ChatListDrawer />
+      <SearchDrawer />
     </main>
   );
 }

@@ -4,11 +4,13 @@ import { Search, Plus, User, MessageCircle } from 'lucide-react';
 import { useCreateStore } from '@/store/useCreateStore';
 import { useUserStore } from '@/store/useUserStore';
 import { useChatStore } from '@/store/useChatStore';
+import { useSearchStore } from '@/store/useSearchStore';
 
 export default function BottomDock() {
   const { setIsOpen, reset } = useCreateStore();
   const { setProfileOpen } = useUserStore();
   const { setChatListOpen } = useChatStore();
+  const { setSearchOpen } = useSearchStore();
 
   const handleCreateClick = () => {
     reset();
@@ -19,7 +21,10 @@ export default function BottomDock() {
     <div className="fixed bottom-6 left-0 right-0 z-[500] px-4 pointer-events-none">
       <div className="pointer-events-auto mx-auto max-w-[280px] bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 p-2 flex items-center justify-between">
         
-        <button className="flex flex-col items-center justify-center w-12 h-12 rounded-xl hover:bg-gray-100/50 transition-colors gap-1">
+        <button 
+          onClick={() => setSearchOpen(true)}
+          className="flex flex-col items-center justify-center w-12 h-12 rounded-xl hover:bg-gray-100/50 transition-colors gap-1"
+        >
           <Search className="w-6 h-6 text-gray-600" />
         </button>
         
