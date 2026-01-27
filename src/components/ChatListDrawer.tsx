@@ -163,22 +163,29 @@ export default function ChatListDrawer() {
             {/* Input Area (Only in Active Chat) */}
             {activeChat && (
                 <div className="p-4 bg-white border-t border-gray-100 pb-8">
-                    {/* Telegram Group Link (For Group Chats) */}
+                    {/* Telegram Forum Topic Link (For Group Chats) */}
                     {activeChat.isGroupChat && activeChat.telegramGroupLink && (
-                        <a 
-                            href={activeChat.telegramGroupLink}
-                            className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-3 rounded-2xl font-bold text-base mb-3 hover:shadow-lg active:scale-[0.98] transition-all shadow-md"
-                        >
-                            <ExternalLink className="w-5 h-5" />
-                            Create Telegram Group
-                        </a>
+                        <div className="space-y-2 mb-3">
+                            <a 
+                                href={activeChat.telegramGroupLink}
+                                className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-3 rounded-2xl font-bold text-base hover:shadow-lg active:scale-[0.98] transition-all shadow-md"
+                            >
+                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                                Открыть чат в Telegram
+                            </a>
+                            <p className="text-xs text-center text-gray-500">
+                                💬 Все сообщения синхронизируются между приложением и Telegram
+                            </p>
+                        </div>
                     )}
                     
                     {/* Info for group chats */}
                     {activeChat.isGroupChat && !activeChat.telegramGroupLink && (
                         <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-3 text-center">
                             <p className="text-sm text-blue-600 font-medium">
-                                🔄 Setting up Telegram group...
+                                🔄 Создаем топик в Telegram...
                             </p>
                         </div>
                     )}

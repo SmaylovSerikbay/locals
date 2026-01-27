@@ -130,20 +130,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
                   id: 'welcome',
                   senderId: 'system',
                   text: itemType === 'EVENT' 
-                    ? `Добро пожаловать в чат события! Обсуждайте детали и договаривайтесь здесь.` 
-                    : `Добро пожаловать в чат задачи! Координируйте выполнение здесь.`,
+                    ? `🎉 Добро пожаловать! Это чат события "${itemTitle}". Обсуждайте детали здесь. Все сообщения синхронизируются с Telegram.` 
+                    : `📦 Добро пожаловать! Это чат задачи "${itemTitle}". Координируйте выполнение здесь. Все сообщения синхронизируются с Telegram.`,
                   timestamp: new Date().toISOString(),
                   isRead: true
               }
           ],
-          telegramGroupLink: undefined
+          telegramGroupLink: undefined // Will be set after API call
       };
 
       set((state) => ({
           chats: [...state.chats, newChat]
       }));
 
-      // Call API to create Telegram group (async, non-blocking)
+      // Call API to create Telegram forum topic (async, non-blocking)
       fetch('/api/telegram/create-group', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -151,18 +151,74 @@ export const useChatStore = create<ChatState>((set, get) => ({
       })
       .then(res => res.json())
       .then(data => {
-          if (data.deepLink) {
-              // Update chat with Telegram link
+          if (data.success && data.deepLink) {
+              // Update chat with Telegram topic link
               set((state) => ({
                   chats: state.chats.map(c => 
                       c.id === `group_${itemId}` 
-                      ? { ...c, telegramGroupLink: data.deepLink }
+                      ? { 
+                          ...c, 
+                          telegramGroupLink: data.deepLink,
+                          messages: [
+                              ...c.messages,
+                              {
+                                  id: 'telegram_ready',
+                                  senderId: 'system',
+                                  text: '✅ Telegram топик создан! Теперь вы можете общаться как в приложении, так и в Telegram.',
+                                  timestamp: new Date().toISOString(),
+                                  isRead: true
+                              }
+                          ]
+                      }
+                      : c
+                  )
+              }));
+          } else {
+              console.error('Failed to create Telegram topic:', data);
+              // Add error message
+              set((state) => ({
+                  chats: state.chats.map(c => 
+                      c.id === `group_${itemId}` 
+                      ? { 
+                          ...c,
+                          messages: [
+                              ...c.messages,
+                              {
+                                  id: 'telegram_error',
+                                  senderId: 'system',
+                                  text: '⚠️ Не удалось создать Telegram топик. Вы можете продолжить общение в приложении.',
+                                  timestamp: new Date().toISOString(),
+                                  isRead: true
+                              }
+                          ]
+                      }
                       : c
                   )
               }));
           }
       })
-      .catch(err => console.error('Failed to create Telegram group:', err));
+      .catch(err => {
+          console.error('Failed to create Telegram topic:', err);
+          set((state) => ({
+              chats: state.chats.map(c => 
+                  c.id === `group_${itemId}` 
+                  ? { 
+                      ...c,
+                      messages: [
+                          ...c.messages,
+                          {
+                              id: 'telegram_error',
+                              senderId: 'system',
+                              text: '⚠️ Ошибка подключения к Telegram. Попробуйте позже.',
+                              timestamp: new Date().toISOString(),
+                              isRead: true
+                          }
+                      ]
+                  }
+                  : c
+              )
+          }));
+      });
 
       return newChat;
   }

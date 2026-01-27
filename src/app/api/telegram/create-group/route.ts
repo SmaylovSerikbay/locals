@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Telegram Bot API integration for group chat
+/**
+ * АРХИТЕКТУРА: TELEGRAM FORUM GROUPS С ТОПИКАМИ
+ * 
+ * Вместо создания отдельной группы для каждого события:
+ * 1. Создаем ОДНУ супергруппу-форум (например "LOCALS Almaty")
+ * 2. Для каждого события создаем ТОПИК (ветку) в этом форуме
+ * 3. Пользователи присоединяются к конкретному топику
+ * 
+ * Преимущества:
+ * - Не нужно создавать сотни групп
+ * - Все события города в одном месте
+ * - Легче модерировать
+ * - Telegram автоматически организует обсуждения
+ */
+
+// Супергруппа-форум BLINK (@blinkappchat)
+// Настроена с правами администратора для бота @bblinkappbot
+const FORUM_CHAT_ID = process.env.TELEGRAM_FORUM_CHAT_ID || '-1003836967887';
+
 export async function POST(request: NextRequest) {
   try {
     const { title, itemId, itemType } = await request.json();
@@ -10,37 +28,76 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Bot token not configured' }, { status: 500 });
     }
 
-    // Extract bot username from token (format: botId:token)
-    const botId = botToken.split(':')[0];
+    // Создаем топик в форум-группе
+    const topicName = `${itemType === 'EVENT' ? '🎉' : '📦'} ${title}`;
     
-    // Solution: Use Telegram's startgroup deep link
-    // This opens Telegram with a pre-filled group creation dialog
-    // The bot will be automatically added to the group
-    const botUsername = await getBotUsername(botToken);
-    
-    // Create a deep link that:
-    // 1. Opens Telegram group creation
-    // 2. Adds the bot automatically
-    // 3. Pre-fills the group name
-    const deepLink = `https://t.me/${botUsername}?startgroup=${itemId}&admin=change_info+post_messages+delete_messages+invite_users+pin_messages`;
-    
-    // Alternative: Direct group creation link (requires user to click)
-    const inviteLink = `tg://msg?text=${encodeURIComponent(
-      `Join the ${itemType === 'EVENT' ? 'event' : 'task'}: ${title}\n\nClick to join our coordination group!`
-    )}`;
+    const createTopicResponse = await fetch(
+      `https://api.telegram.org/bot${botToken}/createForumTopic`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: FORUM_CHAT_ID,
+          name: topicName.substring(0, 128), // Max 128 chars
+          icon_color: itemType === 'EVENT' ? 0x6FB9F0 : 0xFFD67E, // Blue for events, yellow for tasks
+          // icon_custom_emoji_id: 'optional_emoji_id' // Можно добавить кастомный эмодзи
+        })
+      }
+    );
+
+    const topicData = await createTopicResponse.json();
+
+    if (!topicData.ok) {
+      console.error('Failed to create forum topic:', topicData);
+      
+      // Fallback: если не получилось создать топик, даем ссылку на общий чат
+      const botUsername = await getBotUsername(botToken);
+      return NextResponse.json({
+        success: false,
+        error: topicData.description,
+        fallbackLink: `https://t.me/${botUsername}?start=item_${itemId}`,
+        instructions: 'Не удалось создать топик. Используйте общий чат.'
+      });
+    }
+
+    const messageThreadId = topicData.result.message_thread_id;
+    const topicId = topicData.result.message_thread_id;
+
+    // Отправляем приветственное сообщение в топик
+    await fetch(
+      `https://api.telegram.org/bot${botToken}/sendMessage`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: FORUM_CHAT_ID,
+          message_thread_id: messageThreadId,
+          text: `🎯 **${title}**\n\n${itemType === 'EVENT' ? '🎉 Событие' : '📦 Задача'} создано!\n\nОбсуждайте детали и договаривайтесь здесь.\n\n📍 Открыть в приложении: [LOCALS](https://your-app-url.com)`,
+          parse_mode: 'Markdown'
+        })
+      }
+    );
+
+    // Формируем ссылку на топик
+    // Формат: https://t.me/c/{chat_id без -100}/{topic_id}
+    const chatIdNumeric = FORUM_CHAT_ID.replace('-100', '');
+    const topicLink = `https://t.me/c/${chatIdNumeric}/${topicId}`;
 
     return NextResponse.json({
       success: true,
-      chatId: `group_${itemId}`,
-      deepLink,
-      inviteLink,
-      botUsername,
-      instructions: 'Click the button to create a Telegram group with the bot'
+      chatId: `topic_${itemId}`,
+      topicId: messageThreadId,
+      deepLink: topicLink,
+      forumChatId: FORUM_CHAT_ID,
+      instructions: 'Topic created in forum group'
     });
 
   } catch (error) {
-    console.error('Error creating Telegram group:', error);
-    return NextResponse.json({ error: 'Failed to create group' }, { status: 500 });
+    console.error('Error creating forum topic:', error);
+    return NextResponse.json({ 
+      error: 'Failed to create topic',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
 
@@ -55,7 +112,6 @@ async function getBotUsername(botToken: string): Promise<string> {
     throw new Error('Failed to get bot info');
   } catch (error) {
     console.error('Error getting bot username:', error);
-    // Fallback: extract from token or use a default
-    return 'your_bot'; // You'll need to replace this with actual bot username
+    return 'locals_bot'; // Fallback
   }
 }

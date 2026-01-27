@@ -73,33 +73,61 @@ Open your bot and click "Open App" or use:
 https://t.me/YOUR_BOT_NAME/locals
 ```
 
-## Telegram Group Chat Integration
+## Telegram Forum Groups Integration 🎯
 
-### Current Implementation
+### Архитектура: ОДНА супергруппа с топиками
 
-The app creates **in-app group chats** automatically when users:
-- Join an event (Dvizh)
-- Accept a task
+Вместо создания отдельной группы для каждого события, используем **Telegram Forum Groups**:
 
-### Future: Full Telegram Sync (Requires Backend)
+**Как это работает:**
+1. Создается ОДНА супергруппа-форум (например "LOCALS Almaty")
+2. Для каждого события/задачи создается **топик** (ветка обсуждения)
+3. Пользователи присоединяются к конкретному топику
+4. Все события города в одном месте!
 
-To sync messages with real Telegram groups:
+**Преимущества:**
+- ✅ Не нужно создавать сотни групп
+- ✅ Все события в одном форуме
+- ✅ Легче модерировать
+- ✅ Пользователи видят все активные события
+- ✅ Telegram автоматически организует обсуждения
 
-1. **Create Groups via Bot**: Use Telegram Bot API to create supergroups
-2. **Webhooks**: Set up webhook to receive Telegram messages
-3. **Bidirectional Sync**: Store messages in Supabase and sync both ways
+### Настройка
 
-```typescript
-// Example: Create Telegram group (backend)
-const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/createChatInviteLink`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    chat_id: chatId,
-    name: title,
-    creates_join_request: false
-  })
-});
+1. Создайте супергруппу в Telegram
+2. Включите "Topics" в настройках
+3. Добавьте бота администратором
+4. Получите Chat ID группы
+5. Обновите `.env.local`:
+
+```env
+NEXT_PUBLIC_TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_FORUM_CHAT_ID=-100XXXXXXXXX
+```
+
+**Подробная инструкция:** См. `TELEGRAM_SETUP.md`
+
+### Текущая реализация
+
+✅ **Реализовано:**
+- Создание топиков через Bot API (`createForumTopic`)
+- Автоматическое открытие чата при присоединении к событию
+- In-app чат с интерфейсом как в Telegram
+- Кнопка "Открыть в Telegram" для перехода в топик
+
+⏳ **В разработке:**
+- Webhook для синхронизации сообщений Telegram ↔ App
+- Автоматическое закрытие топиков после завершения события
+- Модерация и статистика
+
+### Структура форум-группы
+
+```
+📱 LOCALS Almaty
+├── 🎉 Футбол на районе (Topic #1)
+├── 📦 Помочь с переездом (Topic #2)
+├── 🎉 Настольные игры (Topic #3)
+└── ...
 ```
 
 ## Project Structure
