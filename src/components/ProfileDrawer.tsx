@@ -3,7 +3,7 @@
 import { Drawer } from 'vaul';
 import { useUserStore } from '@/store/useUserStore';
 import { useTranslations } from 'next-intl';
-import { Instagram, Star, Globe, ChevronRight } from 'lucide-react';
+import { Instagram, Star, Globe, ChevronRight, Check } from 'lucide-react';
 import { usePathname, useRouter } from '@/i18n/routing';
 import { useLocale } from 'next-intl';
 
@@ -76,24 +76,32 @@ export default function ProfileDrawer() {
                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
                        <button 
                          onClick={() => handleLanguageChange('en')}
-                         className="w-full flex items-center justify-between p-4 active:bg-gray-50 transition-colors border-b border-gray-100 last:border-0"
+                         className="w-full flex items-center justify-between p-4 active:bg-gray-50 transition-colors border-b border-gray-100 last:border-0 hover:bg-gray-50"
                        >
                            <div className="flex items-center gap-3">
                                <span className="text-2xl">🇬🇧</span>
                                <span className="font-semibold text-gray-900">English</span>
                            </div>
-                           {currentLocale === 'en' && <ChevronRight className="w-5 h-5 text-blue-500" />}
+                           {currentLocale === 'en' && (
+                               <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-md">
+                                   <Check className="w-4 h-4 text-white stroke-[3]" />
+                               </div>
+                           )}
                        </button>
 
                        <button 
                          onClick={() => handleLanguageChange('ru')}
-                         className="w-full flex items-center justify-between p-4 active:bg-gray-50 transition-colors"
+                         className="w-full flex items-center justify-between p-4 active:bg-gray-50 transition-colors hover:bg-gray-50"
                        >
                            <div className="flex items-center gap-3">
                                <span className="text-2xl">🇷🇺</span>
                                <span className="font-semibold text-gray-900">Русский</span>
                            </div>
-                           {currentLocale === 'ru' && <ChevronRight className="w-5 h-5 text-blue-500" />}
+                           {currentLocale === 'ru' && (
+                               <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-md">
+                                   <Check className="w-4 h-4 text-white stroke-[3]" />
+                               </div>
+                           )}
                        </button>
                    </div>
                 </div>

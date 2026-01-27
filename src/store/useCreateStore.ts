@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ItemType } from './useItemsStore';
+import { ItemType, Currency } from './useItemsStore';
 
 interface CreateState {
   isOpen: boolean;
@@ -10,6 +10,7 @@ interface CreateState {
     title: string;
     description: string;
     price: string;
+    currency: Currency;
     date: string;
   };
   setIsOpen: (isOpen: boolean) => void;
@@ -29,6 +30,7 @@ export const useCreateStore = create<CreateState>((set) => ({
     title: '',
     description: '',
     price: '',
+    currency: 'USD',
     date: ''
   },
   setIsOpen: (isOpen) => set({ isOpen }),
@@ -44,6 +46,7 @@ export const useCreateStore = create<CreateState>((set) => ({
       title: '',
       description: '',
       price: '',
+      currency: 'USD',
       date: ''
     }
   })

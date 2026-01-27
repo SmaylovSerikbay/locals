@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl';
 import ItemDrawer from './ItemDrawer';
 import CreateDrawer from './CreateDrawer';
 import { useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, Navigation } from 'lucide-react';
 
 // Custom Marker Icons
 const createCustomIcon = (emoji: string, color: string) => {
@@ -36,6 +36,49 @@ const createCustomIcon = (emoji: string, color: string) => {
 
 const taskIcon = createCustomIcon('📦', '#FCD34D'); // Yellow for Tasks
 const eventIcon = createCustomIcon('🎉', '#60A5FA'); // Blue for Events
+
+function UserLocationHandler() {
+  const map = useMap();
+  const [position, setPosition] = useState<L.LatLng | null>(null);
+
+  useEffect(() => {
+    map.locate().on("locationfound", function (e) {
+      setPosition(e.latlng);
+      map.flyTo(e.latlng, 15);
+    });
+  }, [map]);
+
+  const goToMyLocation = () => {
+    map.locate().on("locationfound", function (e) {
+        setPosition(e.latlng);
+        map.flyTo(e.latlng, 15);
+    });
+  };
+
+  return (
+      <>
+         {position && (
+             <Marker 
+                position={position} 
+                icon={L.divIcon({
+                    className: 'user-pin',
+                    html: `<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-md relative">
+                              <div class="absolute -inset-4 bg-blue-500/20 rounded-full animate-ping"></div>
+                           </div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                })}
+             />
+         )}
+         <button 
+            onClick={goToMyLocation}
+            className="absolute top-20 right-3 z-[400] w-10 h-10 bg-white rounded-xl shadow-lg flex items-center justify-center hover:bg-gray-50 active:scale-90 transition-all border border-gray-100"
+         >
+            <Navigation className="w-5 h-5 text-blue-500 fill-blue-500" />
+         </button>
+      </>
+  );
+}
 
 function LocationSelector() {
   const map = useMap();
@@ -74,7 +117,7 @@ function LocationSelector() {
          <div className={`relative transition-all duration-300 ${isMoving ? 'scale-110 opacity-80' : 'scale-100 opacity-100'}`}>
             <div className="w-4 h-4 bg-black rounded-full shadow-lg border-2 border-white z-10 relative"></div>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-black/10 rounded-full animate-pulse"></div>
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-1 h-8 bg-gradient-to-b from-black to-transparent opacity-30"></div>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-1 h-8 bg-linear-to-b from-black to-transparent opacity-30"></div>
          </div>
          <div className="mt-4 bg-black/70 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full font-medium shadow-lg transition-opacity duration-200" style={{ opacity: isMoving ? 0 : 1 }}>
             Перемещай карту
@@ -85,7 +128,7 @@ function LocationSelector() {
       <div className="absolute bottom-36 left-0 right-0 z-[400] flex justify-center pointer-events-none px-4">
          <button 
            onClick={handleConfirm}
-           className="group pointer-events-auto bg-black text-white px-6 py-4 rounded-[2rem] font-bold shadow-2xl flex items-center gap-3 active:scale-95 transition-all duration-300 hover:shadow-black/20 w-full max-w-[280px] justify-center"
+           className="group pointer-events-auto bg-black text-white px-6 py-4 rounded-4xl font-bold shadow-2xl flex items-center gap-3 active:scale-95 transition-all duration-300 hover:shadow-black/20 w-full max-w-[280px] justify-center"
          >
            <span className="text-lg">{t('confirm_location')}</span>
            <div className="bg-white/20 rounded-full p-1 group-hover:bg-white/30 transition-colors">
@@ -103,9 +146,9 @@ export default function Map() {
   return (
     <>
       <MapContainer 
-        center={[43.238949, 76.889709]} // Almaty coordinates
+        center={[43.238949, 76.889709]} // Almaty coordinates fallback
         zoom={13} 
-        className="h-[100dvh] w-full z-0 bg-[#f5f5f5]" // Fallback color matching Voyager
+        className="h-dvh w-full z-0 bg-[#f5f5f5]" // Fallback color matching Voyager
         zoomControl={false}
       >
         <TileLayer
@@ -115,6 +158,7 @@ export default function Map() {
         />
         <ZoomControl position="topright" />
 
+        <UserLocationHandler />
         <LocationSelector />
 
         {items.map((item) => (

@@ -3,7 +3,9 @@
     "title": "LOCALS",
     "search_placeholder": "Поиск рядом...",
     "tasks": "Задания",
-    "events": "Движ"
+    "events": "Движ",
+    "suggested": "Рекомендации",
+    "nearby": "Рядом с вами"
   },
   "CreateFlow": {
     "step_1_title": "Что будем делать?",
@@ -14,7 +16,7 @@
     "step_3_title": "Детали",
     "title_label": "Название",
     "desc_label": "Описание",
-    "price_label": "Цена (KZT)",
+    "price_label": "Цена",
     "date_label": "Дата",
     "create_btn": "Опубликовать"
   },
@@ -32,5 +34,10 @@
     "type_message": "Напишите сообщение...",
     "online": "В сети",
     "offline": "Был(а) недавно"
+  },
+  "ItemDetails": {
+    "join": "Присоединиться",
+    "respond": "Откликнуться",
+    "hosted_by": "Автор"
   }
 }

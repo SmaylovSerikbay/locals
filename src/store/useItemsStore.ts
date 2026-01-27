@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 export type ItemType = 'TASK' | 'EVENT';
+export type Currency = 'USD' | 'KZT' | 'RUB' | 'EUR';
 
 export interface Item {
   id: string;
@@ -8,7 +9,7 @@ export interface Item {
   title: string;
   description: string;
   price?: number; // For tasks
-  currency: string;
+  currency: Currency;
   eventDate?: string; // For events
   location: [number, number]; // [lat, lng]
   author: {
@@ -32,8 +33,8 @@ const MOCK_ITEMS: Item[] = [
     type: 'TASK',
     title: 'Помочь с переездом',
     description: 'Нужно перенести 5 коробок на 3 этаж. Лифта нет.',
-    price: 5000,
-    currency: 'KZT',
+    price: 15,
+    currency: 'USD',
     location: [43.238949, 76.889709], // Almaty
     author: {
       name: 'Алексей',
@@ -47,8 +48,8 @@ const MOCK_ITEMS: Item[] = [
     title: 'Играем в Мафию',
     description: 'Собираемся в кафе "Центр". Новичкам рады!',
     eventDate: '2023-10-28T19:00:00',
+    currency: 'USD',
     location: [43.242949, 76.895709], // Nearby
-    currency: 'KZT',
     author: {
       name: 'Мария',
       avatarUrl: 'https://i.pravatar.cc/150?u=2',
@@ -60,8 +61,8 @@ const MOCK_ITEMS: Item[] = [
     type: 'TASK',
     title: 'Выгулять собаку',
     description: 'Маленький корги, очень добрый. Гулять 30 минут.',
-    price: 2000,
-    currency: 'KZT',
+    price: 10,
+    currency: 'USD',
     location: [43.235949, 76.885709],
     author: {
       name: 'Ержан',
