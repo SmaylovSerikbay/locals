@@ -2,14 +2,13 @@
 
 import { useEffect } from 'react';
 import { useUserStore } from '@/store/useUserStore';
-import WebApp from '@twa-dev/sdk';
 
 export default function TelegramInit() {
   const { setUser } = useUserStore();
 
   useEffect(() => {
     // Check if running in Telegram WebApp
-    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.initData) {
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp;
       tg.ready();
       tg.expand();
