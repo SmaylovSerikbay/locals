@@ -10,9 +10,10 @@ interface SlideButtonProps {
   className?: string;
   icon?: React.ReactNode;
   initialText?: string; // e.g. "Slide to respond"
+  disabled?: boolean;
 }
 
-export default function SlideButton({ onSuccess, text = "Slide to confirm", className = "", icon }: SlideButtonProps) {
+export default function SlideButton({ onSuccess, text = "Slide to confirm", className = "", icon, disabled = false }: SlideButtonProps) {
   const [isCompleted, setIsCompleted] = useState(false);
   const x = useMotionValue(0);
   const controls = useAnimation();
@@ -58,7 +59,7 @@ export default function SlideButton({ onSuccess, text = "Slide to confirm", clas
   return (
     <div 
       ref={containerRef}
-      className={`relative h-[64px] bg-gray-100 rounded-[32px] overflow-hidden select-none touch-none w-full shadow-inner ${className}`}
+      className={`relative h-[64px] bg-gray-100 rounded-[32px] overflow-hidden select-none touch-none w-full shadow-inner ${disabled ? 'opacity-50' : ''} ${className}`}
     >
       {/* Success State Overlay */}
       <motion.div 
@@ -108,15 +109,15 @@ export default function SlideButton({ onSuccess, text = "Slide to confirm", clas
 
       {/* Draggable Handle */}
       <motion.div
-          drag="x"
+          drag={disabled ? false : "x"}
           dragConstraints={{ left: 0, right: constraints.right }}
           dragElastic={0.05}
           dragMomentum={false}
-          onDragEnd={handleDragEnd}
+          onDragEnd={disabled ? undefined : handleDragEnd}
           animate={controls}
           style={{ x }}
-          whileTap={{ scale: 1.05 }}
-          className="absolute top-1 left-1 bottom-1 w-[56px] h-[56px] bg-white rounded-full flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.15)] cursor-grab active:cursor-grabbing z-20 border border-gray-100"
+          whileTap={disabled ? {} : { scale: 1.05 }}
+          className={`absolute top-1 left-1 bottom-1 w-[56px] h-[56px] bg-white rounded-full flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.15)] z-20 border border-gray-100 ${disabled ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
       >
           {icon || <ChevronRight className="w-8 h-8 text-black stroke-[3]" />}
       </motion.div>

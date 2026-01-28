@@ -61,10 +61,13 @@ interface ItemsState {
   fetchItemById: (id: string) => Promise<void>;
   createItem: (itemData: Partial<Item>) => Promise<Item | null>;
   updateItem: (id: string, updates: Partial<Item>) => Promise<void>;
-  deleteItem: (id: string) => Promise<void>;
+  deleteItem: (id: string, authorId: number) => Promise<boolean>;
   addResponse: (itemId: string, userId: number, message: string) => Promise<void>;
   updateResponseStatus: (responseId: string, status: ResponseStatus, authorId: number) => Promise<void>;
   completeItem: (itemId: string, userId: number) => Promise<void>;
+  joinEvent: (itemId: string, userId: number) => Promise<any>;
+  getJoinRequests: (itemId: string, status?: string) => Promise<any[]>;
+  moderateJoinRequest: (itemId: string, participantId: string, status: 'APPROVED' | 'REJECTED', authorId: number) => Promise<any>;
   
   // Real-time subscriptions
   subscribeToItems: () => () => void;
@@ -192,21 +195,6 @@ export const useItemsStore = create<ItemsState>((set, get) => ({
     }
   },
   
-  // Delete item
-  deleteItem: async (id) => {
-    try {
-      const response = await fetch(`/api/items/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Failed to delete item');
-      
-      set((state) => ({
-        items: state.items.filter((item) => item.id !== id),
-        selectedItem: state.selectedItem?.id === id ? null : state.selectedItem,
-      }));
-    } catch (error) {
-      console.error('Error deleting item:', error);
-      set({ error: error instanceof Error ? error.message : 'Unknown error' });
-    }
-  },
   
   // Add response to item
   addResponse: async (itemId, userId, message) => {
@@ -269,6 +257,99 @@ export const useItemsStore = create<ItemsState>((set, get) => ({
     } catch (error) {
       console.error('Error completing item:', error);
       set({ error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  },
+
+  // Join event (new method)
+  joinEvent: async (itemId, userId) => {
+    try {
+      const response = await fetch(`/api/items/${itemId}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to join event');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Join event error:', error);
+      set({ error: error instanceof Error ? error.message : 'Unknown error' });
+      return null;
+    }
+  },
+
+  // Get join requests (new method)
+  getJoinRequests: async (itemId, status) => {
+    try {
+      const url = status 
+        ? `/api/items/${itemId}/join?status=${status}`
+        : `/api/items/${itemId}/join`;
+      
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch join requests');
+      }
+
+      const data = await response.json();
+      return data.participants || [];
+    } catch (error) {
+      console.error('Get join requests error:', error);
+      return [];
+    }
+  },
+
+  // Moderate join request (new method)
+  moderateJoinRequest: async (itemId, participantId, status, authorId) => {
+    try {
+      const response = await fetch(`/api/items/${itemId}/join/${participantId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, authorId }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to moderate request');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Moderate join request error:', error);
+      set({ error: error instanceof Error ? error.message : 'Unknown error' });
+      return null;
+    }
+  },
+
+  // Delete item by author (updated)
+  deleteItem: async (itemId, authorId) => {
+    try {
+      const response = await fetch(`/api/items/${itemId}/delete?authorId=${authorId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete item');
+      }
+
+      // Remove from local state
+      set((state) => ({
+        items: state.items.filter((item) => item.id !== itemId),
+        selectedItem: state.selectedItem?.id === itemId ? null : state.selectedItem,
+      }));
+
+      return true;
+    } catch (error) {
+      console.error('Delete item error:', error);
+      set({ error: error instanceof Error ? error.message : 'Unknown error' });
+      return false;
     }
   },
   
