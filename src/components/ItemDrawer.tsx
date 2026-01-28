@@ -27,6 +27,7 @@ export default function ItemDrawer() {
   const [approvedParticipants, setApprovedParticipants] = useState<any[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [userStatus, setUserStatus] = useState<'PENDING' | 'APPROVED' | 'REJECTED' | null>(null);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -37,11 +38,16 @@ export default function ItemDrawer() {
   };
 
   useEffect(() => {
-    if (selectedItem && selectedItem.type === 'EVENT' && isOwner) {
-      // Load join requests for event owner
-      loadJoinRequests();
+    if (selectedItem && selectedItem.type === 'EVENT') {
+      if (isOwner) {
+        // Load join requests for event owner
+        loadJoinRequests();
+      } else if (user) {
+        // Check user's participation status
+        checkUserStatus();
+      }
     }
-  }, [selectedItem?.id, activeTab]);
+  }, [selectedItem?.id, activeTab, user?.id]);
 
   const loadJoinRequests = async () => {
     if (!selectedItem) return;
@@ -51,6 +57,19 @@ export default function ItemDrawer() {
     
     setJoinRequests(pending);
     setApprovedParticipants(approved);
+  };
+
+  const checkUserStatus = async () => {
+    if (!selectedItem || !user) return;
+    
+    const allParticipants = await getJoinRequests(selectedItem.id);
+    const myParticipation = allParticipants.find((p: any) => String(p.user_id) === String(user.id));
+    
+    if (myParticipation) {
+      setUserStatus(myParticipation.status);
+    } else {
+      setUserStatus(null);
+    }
   };
 
   if (!selectedItem) return null;
@@ -74,10 +93,12 @@ export default function ItemDrawer() {
     if (result) {
       if (result.requiresApproval) {
         alert(t('waiting_approval'));
+        setUserStatus('PENDING');
       } else {
         alert(t('approved'));
+        setUserStatus('APPROVED');
       }
-      await loadJoinRequests();
+      await checkUserStatus();
     }
   };
 
@@ -309,13 +330,28 @@ export default function ItemDrawer() {
                        </div>
                    </div>
                 ) : (
-                    <SlideButton 
-                       text={isTask ? t('slide_to_apply') : (requiresApproval ? t('request_to_join') : t('slide_to_join'))}
-                       onSuccess={isTask ? handleRespond : handleJoin}
-                       className={isTask ? "bg-yellow-50" : "bg-blue-50"}
-                       icon={isTask ? <Briefcase className="w-6 h-6 text-yellow-600" /> : <Users className="w-6 h-6 text-blue-600" />}
-                       disabled={isJoining}
-                    />
+                    <>
+                      {/* Event status-based button */}
+                      {!isTask && userStatus === 'APPROVED' ? (
+                         <div className="w-full py-6 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 rounded-[28px] font-bold text-xl text-center flex items-center justify-center gap-3 border-2 border-green-300 shadow-lg">
+                             <CheckCircle className="w-7 h-7" /> 
+                             <span>✓ Я в деле</span>
+                         </div>
+                      ) : !isTask && userStatus === 'PENDING' ? (
+                         <div className="w-full py-6 bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-700 rounded-[28px] font-bold text-xl text-center flex items-center justify-center gap-3 border-2 border-orange-300 shadow-lg">
+                             <Clock className="w-7 h-7" /> 
+                             <span>⏳ {t('waiting_approval')}</span>
+                         </div>
+                      ) : (
+                        <SlideButton 
+                           text={isTask ? t('slide_to_apply') : (requiresApproval ? t('request_to_join') : t('slide_to_join'))}
+                           onSuccess={isTask ? handleRespond : handleJoin}
+                           className={isTask ? "bg-yellow-50" : "bg-blue-50"}
+                           icon={isTask ? <Briefcase className="w-6 h-6 text-yellow-600" /> : <Users className="w-6 h-6 text-blue-600" />}
+                           disabled={isJoining}
+                        />
+                      )}
+                    </>
                 )}
              </div>
           </div>
