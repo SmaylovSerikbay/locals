@@ -154,8 +154,39 @@ function LocationSelector() {
 }
 
 export default function Map() {
-  const { items, setSelectedItem } = useItemsStore();
+  const { items, setSelectedItem, fetchNearbyItems, loading } = useItemsStore();
   const [filter, setFilter] = useState<'ALL' | 'TASK' | 'EVENT'>('ALL');
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+
+  // Fetch nearby items when component mounts or location changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          setUserLocation([lat, lng]);
+          
+          // Fetch items within 5km radius
+          fetchNearbyItems(lat, lng, 5000, filter === 'ALL' ? undefined : filter);
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          // Fallback to Almaty coordinates
+          const defaultLat = 43.238949;
+          const defaultLng = 76.889709;
+          setUserLocation([defaultLat, defaultLng]);
+          fetchNearbyItems(defaultLat, defaultLng, 5000, filter === 'ALL' ? undefined : filter);
+        }
+      );
+    } else {
+      // Fallback to default location
+      const defaultLat = 43.238949;
+      const defaultLng = 76.889709;
+      setUserLocation([defaultLat, defaultLng]);
+      fetchNearbyItems(defaultLat, defaultLng, 5000, filter === 'ALL' ? undefined : filter);
+    }
+  }, [filter, fetchNearbyItems]);
 
   const filteredItems = items.filter(item => filter === 'ALL' || item.type === filter);
 

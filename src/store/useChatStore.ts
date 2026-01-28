@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { supabase } from '@/lib/supabase';
 
 export interface Message {
   id: string;
@@ -34,12 +35,19 @@ interface ChatState {
   chats: Chat[];
   activeChatId: string | null;
   isChatListOpen: boolean;
+  loading: boolean;
+  
+  // Actions
   setChatListOpen: (isOpen: boolean) => void;
   openChat: (chatId: string) => void;
   closeChat: () => void;
-  sendMessage: (chatId: string, text: string) => void;
+  fetchMessages: (itemId: string) => Promise<void>;
+  sendMessage: (itemId: string, senderId: number, text: string) => Promise<void>;
   createGroupChat: (itemId: string, itemTitle: string, itemType: string) => Chat;
   createPrivateChat: (userId: string, userName: string, userAvatar: string, itemId?: string, itemTitle?: string) => Chat;
+  
+  // Real-time subscriptions
+  subscribeToMessages: (itemId: string) => () => void;
 }
 
 // Mock Data
@@ -83,34 +91,141 @@ const MOCK_CHATS: Chat[] = [
 export const useChatStore = create<ChatState>()(
   persist(
     (set, get) => ({
-  chats: MOCK_CHATS,
+  chats: [],
   activeChatId: null,
   isChatListOpen: false,
+  loading: false,
+  
   setChatListOpen: (isOpen) => set({ isChatListOpen: isOpen }),
   openChat: (chatId) => set({ activeChatId: chatId, isChatListOpen: true }),
   closeChat: () => set({ activeChatId: null }),
-  sendMessage: (chatId, text) => set((state) => {
-    const newMessage: Message = {
-      id: Math.random().toString(36).substr(2, 9),
-      senderId: 'me',
-      text,
-      timestamp: new Date().toISOString(),
-      isRead: false
+  
+  // Fetch messages from API
+  fetchMessages: async (itemId) => {
+    set({ loading: true });
+    try {
+      const response = await fetch(`/api/messages?item_id=${itemId}`);
+      if (!response.ok) throw new Error('Failed to fetch messages');
+      
+      const data = await response.json();
+      
+      // Update chat with messages
+      set((state) => ({
+        chats: state.chats.map((chat) =>
+          chat.itemId === itemId
+            ? {
+                ...chat,
+                messages: data.messages.map((msg: any) => ({
+                  id: msg.id,
+                  senderId: msg.sender_id.toString(),
+                  text: msg.text,
+                  timestamp: msg.created_at,
+                  isRead: true,
+                })),
+                lastMessage: data.messages.length > 0 ? {
+                  id: data.messages[data.messages.length - 1].id,
+                  senderId: data.messages[data.messages.length - 1].sender_id.toString(),
+                  text: data.messages[data.messages.length - 1].text,
+                  timestamp: data.messages[data.messages.length - 1].created_at,
+                  isRead: true,
+                } : chat.lastMessage,
+              }
+            : chat
+        ),
+        loading: false,
+      }));
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      set({ loading: false });
+    }
+  },
+  
+  // Send message via API
+  sendMessage: async (itemId, senderId, text) => {
+    try {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          item_id: itemId,
+          sender_id: senderId,
+          text,
+        }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to send message');
+      
+      const data = await response.json();
+      
+      // Add message to local state
+      const newMessage: Message = {
+        id: data.message.id,
+        senderId: senderId.toString(),
+        text: data.message.text,
+        timestamp: data.message.created_at,
+        isRead: true,
+      };
+      
+      set((state) => ({
+        chats: state.chats.map((chat) =>
+          chat.itemId === itemId
+            ? {
+                ...chat,
+                messages: [...chat.messages, newMessage],
+                lastMessage: newMessage,
+              }
+            : chat
+        ),
+      }));
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  },
+  
+  // Real-time subscription to messages
+  subscribeToMessages: (itemId) => {
+    const channel = supabase
+      .channel(`messages-${itemId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `item_id=eq.${itemId}`,
+        },
+        (payload) => {
+          console.log('New message:', payload);
+          
+          const newMessage: Message = {
+            id: payload.new.id,
+            senderId: payload.new.sender_id.toString(),
+            text: payload.new.text,
+            timestamp: payload.new.created_at,
+            isRead: false,
+          };
+          
+          set((state) => ({
+            chats: state.chats.map((chat) =>
+              chat.itemId === itemId
+                ? {
+                    ...chat,
+                    messages: [...chat.messages, newMessage],
+                    lastMessage: newMessage,
+                    unreadCount: chat.unreadCount + 1,
+                  }
+                : chat
+            ),
+          }));
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
     };
-
-    const updatedChats = state.chats.map(chat => {
-      if (chat.id === chatId) {
-        return {
-          ...chat,
-          messages: [...chat.messages, newMessage],
-          lastMessage: newMessage
-        };
-      }
-      return chat;
-    });
-
-    return { chats: updatedChats };
-  }),
+  },
+  
   createGroupChat: (itemId, itemTitle, itemType) => {
       // Проверяем, не существует ли уже чат для этого item
       const existingChat = get().chats.find(c => c.itemId === itemId && c.isGroupChat);

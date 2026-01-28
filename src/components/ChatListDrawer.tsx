@@ -2,12 +2,14 @@
 
 import { Drawer } from 'vaul';
 import { useChatStore } from '@/store/useChatStore';
+import { useUserStore } from '@/store/useUserStore';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, Send, ExternalLink } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 export default function ChatListDrawer() {
   const { isChatListOpen, setChatListOpen, chats, activeChatId, openChat, closeChat, sendMessage } = useChatStore();
+  const { user } = useUserStore();
   const t = useTranslations('Chats');
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -22,9 +24,9 @@ export default function ChatListDrawer() {
     scrollToBottom();
   }, [activeChat?.messages]);
 
-  const handleSend = () => {
-    if (activeChatId && inputText.trim()) {
-        sendMessage(activeChatId, inputText);
+  const handleSend = async () => {
+    if (activeChatId && inputText.trim() && activeChat?.itemId && user) {
+        await sendMessage(activeChat.itemId, user.id, inputText);
         setInputText('');
     }
   };

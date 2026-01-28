@@ -78,6 +78,18 @@ export async function POST(request: NextRequest) {
       }
     );
 
+    // Обновляем item в Supabase с telegram_topic_id
+    const { getServerSupabase } = await import('@/lib/supabase');
+    const supabase = getServerSupabase();
+    
+    await supabase
+      .from('items')
+      .update({
+        telegram_topic_id: topicId,
+        telegram_chat_id: FORUM_CHAT_ID,
+      })
+      .eq('id', itemId);
+
     // Формируем ссылку на топик
     // Формат: https://t.me/c/{chat_id без -100}/{topic_id}
     const chatIdNumeric = FORUM_CHAT_ID.replace('-100', '');

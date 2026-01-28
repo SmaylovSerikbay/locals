@@ -22,29 +22,44 @@ Hyper-local map-based app for connecting neighbors through tasks and events.
 - **i18n**: next-intl
 - **Animations**: Framer Motion
 
-## Getting Started
+## 🚀 Быстрый старт
 
-### Install Dependencies
+### 1. Установите зависимости
 
 ```bash
 npm install
 ```
 
-### Environment Variables
+### 2. Настройте Supabase
 
-Create `.env.local`:
+1. Создайте проект на [supabase.com](https://supabase.com)
+2. Примените миграцию из `supabase/migrations/001_initial_schema.sql`
+3. Скопируйте API ключи
 
+### 3. Environment Variables
+
+Создайте `.env.local`:
+
+```env
+# Telegram
+NEXT_PUBLIC_TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_FORUM_CHAT_ID=-100XXXXXXXXX
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
-NEXT_PUBLIC_TELEGRAM_BOT_TOKEN=your_bot_token_here
-```
 
-### Run Development Server
+### 4. Запустите сервер разработки
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Откройте [http://localhost:3000](http://localhost:3000)
+
+📖 **Полная документация**: См. [`QUICKSTART.md`](./QUICKSTART.md) и [`DEPLOYMENT.md`](./DEPLOYMENT.md)
 
 ## Telegram Bot Setup
 
@@ -154,36 +169,50 @@ src/
 └── types/                 # TypeScript types
 ```
 
-## Deployment
+## 📦 Deployment
 
-### Vercel (Recommended)
+### Vercel + Supabase (рекомендуется)
 
-1. Push to GitHub
-2. Import project in Vercel
-3. Add environment variable: `NEXT_PUBLIC_TELEGRAM_BOT_TOKEN`
-4. Deploy
+```bash
+# 1. Commit и push
+git add .
+git commit -m "feat: production ready"
+git push
 
-### After Deployment
+# 2. Deploy на Vercel
+# - Добавьте все Environment Variables
+# - Deploy
 
-1. Update BotFather with your production URL
-2. Test the app in Telegram
+# 3. Настройте Telegram Webhook
+curl https://your-app.vercel.app/api/telegram/set-webhook
+```
 
-## Features Roadmap
+📖 **Полная инструкция**: [`DEPLOYMENT.md`](./DEPLOYMENT.md)
 
-- [x] Map with location detection
-- [x] Create tasks and events
-- [x] View item details
-- [x] Slide-to-respond interaction
-- [x] Filter by type (Tasks/Events)
-- [x] In-app group chats
-- [x] Profile with Telegram data
-- [x] Multi-language support
-- [ ] Supabase backend integration
-- [ ] Real-time Telegram group sync
-- [ ] User reputation system
-- [ ] Payment integration
-- [ ] Push notifications
-- [ ] Reviews and ratings
+## Features Status
+
+### ✅ Полностью реализовано
+
+- [x] **Backend**: Supabase PostgreSQL с PostGIS
+- [x] **API Routes**: Полный REST API для items, users, messages, responses, reviews
+- [x] **Real-time**: Supabase Realtime подписки на изменения
+- [x] **Telegram Integration**: Forum Groups с топиками
+- [x] **Telegram Webhook**: Синхронизация сообщений Telegram ↔ App
+- [x] **Карта**: Location detection, nearby items, фильтры
+- [x] **CRUD**: Создание/обновление/удаление задач и событий
+- [x] **Отклики**: Система откликов на задачи с принятием/отклонением
+- [x] **Чаты**: In-app чаты с синхронизацией с Telegram
+- [x] **Пользователи**: Автоматическая синхронизация с Telegram
+- [x] **Репутация**: Система отзывов и рейтинга пользователей
+- [x] **Мультиязычность**: English и Russian
+
+### 🚧 В планах
+
+- [ ] Платежная интеграция (Stripe/Payoneer)
+- [ ] Push-уведомления через Telegram
+- [ ] Модерация контента
+- [ ] Аналитика и статистика
+- [ ] Мобильные приложения (iOS/Android)
 
 ## Contributing
 

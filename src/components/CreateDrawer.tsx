@@ -4,6 +4,7 @@ import React, { useRef } from 'react';
 import { Drawer } from 'vaul';
 import { useCreateStore } from '@/store/useCreateStore';
 import { useItemsStore } from '@/store/useItemsStore';
+import { useUserStore } from '@/store/useUserStore';
 import { useTranslations } from 'next-intl';
 import { ArrowRight, Type, AlignLeft, Calendar, MapPin, DollarSign, Sparkles, ChevronRight } from 'lucide-react';
 import { Currency } from '@/store/useItemsStore';
@@ -133,35 +134,36 @@ function DateTrigger({ value, onChange }: { value: string, onChange: (val: strin
 
 export default function CreateDrawer() {
   const { isOpen, setIsOpen, step, setStep, setType, type, location, formData, setFormData, reset } = useCreateStore();
-  const { addItem } = useItemsStore();
+  const { createItem } = useItemsStore();
+  const { user } = useUserStore();
   const t = useTranslations('CreateFlow');
   
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = () => {
-    if (!type || !location) return;
+  const handleSubmit = async () => {
+    if (!type || !location || !user) {
+      console.error('Missing required data:', { type, location, user });
+      return;
+    }
 
-    addItem({
-        id: Math.random().toString(36).substr(2, 9),
-        type,
-        title: formData.title,
-        description: formData.description,
-        price: formData.price ? Number(formData.price) : undefined,
-        currency: formData.currency,
-        eventDate: type === 'EVENT' ? formData.date : undefined,
-        location: location,
-        status: 'OPEN',
-        author: {
-            id: '123456',
-            name: 'Me (You)',
-            avatarUrl: 'https://i.pravatar.cc/300?u=meirzhan',
-            reputation: 5.0
-        },
-        responses: []
-    });
+    const itemData = {
+      type,
+      title: formData.title,
+      description: formData.description,
+      price: formData.price ? Number(formData.price) : undefined,
+      currency: formData.currency,
+      event_date: type === 'EVENT' ? formData.date : undefined,
+      latitude: location[0],
+      longitude: location[1],
+      author_id: user.id,
+    };
 
-    setIsOpen(false);
-    reset();
+    const createdItem = await createItem(itemData);
+    
+    if (createdItem) {
+      setIsOpen(false);
+      reset();
+    }
   };
 
   const isTask = type === 'TASK';

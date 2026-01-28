@@ -38,19 +38,9 @@ export default function ItemDrawer() {
   const participants = selectedItem.responses.filter(r => r.status === 'ACCEPTED');
   
   // Handling responses
-  const handleRespond = () => {
+  const handleRespond = async () => {
       if (!user) return;
-      const newResponse: Response = {
-          id: Math.random().toString(36).substr(2, 9),
-          userId: String(user.id),
-          userName: user.firstName,
-          userAvatar: user.photoUrl || '',
-          userReputation: 5.0,
-          message: 'Ready to help!',
-          status: 'PENDING',
-          createdAt: new Date().toISOString()
-      };
-      addResponse(selectedItem.id, newResponse);
+      await addResponse(selectedItem.id, user.id, 'Ready to help!');
   };
 
   const handleChat = () => {
@@ -312,10 +302,10 @@ export default function ItemDrawer() {
                                          "{response.message}"
                                      </div>
                                      
-                                     {response.status === 'PENDING' && (
+                                     {response.status === 'PENDING' && user && (
                                          <div className="flex gap-2">
                                              <button 
-                                                onClick={() => updateResponseStatus(selectedItem.id, response.id, 'ACCEPTED')}
+                                                onClick={() => updateResponseStatus(response.id, 'ACCEPTED', user.id)}
                                                 className="flex-1 py-3 bg-black text-white rounded-[16px] font-bold text-sm active:scale-95 transition-transform shadow-lg shadow-black/10"
                                              >
                                                  Accept
@@ -342,15 +332,15 @@ export default function ItemDrawer() {
           {/* Sticky Footer Action */}
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-white/0 pt-8 z-30">
              <div className="bg-white/80 backdrop-blur-xl p-1.5 rounded-[36px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100">
-                 {isOwner ? (
-                     selectedItem.status === 'IN_PROGRESS' ? (
-                         <SlideButton 
-                            text="Slide to Complete"
-                            onSuccess={() => completeItem(selectedItem.id)}
-                            className="bg-green-50"
-                            icon={<CheckCircle className="w-6 h-6 text-green-600" />}
-                         />
-                     ) : (
+                {isOwner ? (
+                    selectedItem.status === 'IN_PROGRESS' && user ? (
+                          <SlideButton 
+                             text="Slide to Complete"
+                             onSuccess={() => completeItem(selectedItem.id, user.id)}
+                             className="bg-green-50"
+                             icon={<CheckCircle className="w-6 h-6 text-green-600" />}
+                          />
+                    ) : (
                         <div className="w-full py-4 text-gray-400 font-bold text-center flex items-center justify-center gap-2">
                              <div className="w-2 h-2 bg-gray-300 rounded-full animate-pulse" />
                              Waiting for action...
