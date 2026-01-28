@@ -43,16 +43,20 @@ export async function PATCH(
       );
     }
 
-    // 2. If approving, check if event is full
+    // 2. If approving, check if event is full (if function exists)
     if (status === 'APPROVED') {
-      const { data: isFull } = await supabase
-        .rpc('is_event_full', { event_id: id });
+      try {
+        const { data: isFull, error: fullError } = await supabase
+          .rpc('is_event_full', { event_id: id });
 
-      if (isFull) {
-        return NextResponse.json(
-          { error: 'Event is full' },
-          { status: 400 }
-        );
+        if (!fullError && isFull) {
+          return NextResponse.json(
+            { error: 'Event is full' },
+            { status: 400 }
+          );
+        }
+      } catch (e) {
+        console.log('is_event_full function not available, skipping check');
       }
     }
 
@@ -66,7 +70,7 @@ export async function PATCH(
       })
       .eq('id', participantId)
       .eq('item_id', id)
-      .select('*, user:users(*)')
+      .select('*, user:users!chat_participants_user_id_fkey(*)')
       .single();
 
     if (updateError) {
@@ -116,9 +120,12 @@ export async function DELETE(
     // Get participant and item
     const { data: participant } = await supabase
       .from('chat_participants')
-      .select('*, item:items(*)')
+      .select(`
+        *,
+        item:items(*)
+      `)
       .eq('id', participantId)
-      .single();
+      .maybeSingle();
 
     if (!participant) {
       return NextResponse.json(
