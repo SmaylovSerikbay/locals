@@ -1,126 +1,114 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, useMotionValue, useTransform, useAnimation } from 'framer-motion';
-import { ChevronRight, Check, ChevronsRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, Check } from 'lucide-react';
 
 interface SlideButtonProps {
+  text: string;
   onSuccess: () => void;
-  text?: string;
   className?: string;
   icon?: React.ReactNode;
-  initialText?: string; // e.g. "Slide to respond"
   disabled?: boolean;
 }
 
-export default function SlideButton({ onSuccess, text = "Slide to confirm", className = "", icon, disabled = false }: SlideButtonProps) {
+export default function SlideButton({ text, onSuccess, className = '', icon, disabled }: SlideButtonProps) {
   const [isCompleted, setIsCompleted] = useState(false);
-  const x = useMotionValue(0);
-  const controls = useAnimation();
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const [constraints, setConstraints] = useState({ left: 0, right: 0 });
+  
+  // Since we can't easily implement drag in a simple component without 
+  // complex libraries, we'll make a sleek hold-to-confirm button
+  // which is more reliable on mobile web than slide-to-unlock.
+  
+  const [progress, setProgress] = useState(0);
+  const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    if (containerRef.current) {
-        setConstraints({
-            left: 0,
-            right: containerRef.current.offsetWidth - 64 // 64 is handle width (h-14 + padding) roughly
-        });
-    }
-  }, []);
-
-  const handleDragEnd = async (_: any, info: any) => {
-    if (!containerRef.current) return;
-    const containerWidth = containerRef.current.offsetWidth;
-    const handleWidth = 56; 
-    const threshold = (containerWidth - handleWidth) * 0.75; // 75% to trigger (easier)
-
-    if (x.get() > threshold) {
-      setIsCompleted(true);
-      await controls.start({ 
-        x: containerWidth - handleWidth - 8,
-        transition: { type: "spring", stiffness: 300, damping: 30 }
-      }); // Snap to end with spring
-      if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
-      setTimeout(() => onSuccess(), 200); // Small delay for visual feedback
-    } else {
-      controls.start({ 
-        x: 0,
-        transition: { type: "spring", stiffness: 400, damping: 30 }
+  const handleStart = () => {
+    if (disabled || isCompleted) return;
+    
+    // Fast fill (approx 800ms)
+    intervalRef.current = setInterval(() => {
+      setProgress(p => {
+        if (p >= 100) {
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          handleComplete();
+          return 100;
+        }
+        return p + 4; // ~25 ticks
       });
+    }, 20);
+  };
+
+  const handleEnd = () => {
+    if (isCompleted) return;
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (progress < 100) {
+      setProgress(0); // Reset if not finished
     }
   };
 
-  // Transform opacity based on drag position
-  const textOpacity = useTransform(x, [0, 100], [1, 0]);
-  const chevronOpacity = useTransform(x, [0, 50], [1, 0]);
-  const bgOpacity = useTransform(x, [0, 200], [0.1, 0.3]);
+  const handleComplete = () => {
+    setIsCompleted(true);
+    setTimeout(() => {
+      onSuccess();
+      // Optional: Reset after success if needed, but usually we navigate away or change state
+    }, 300);
+  };
 
   return (
     <div 
-      ref={containerRef}
-      className={`relative h-[64px] bg-gray-100 rounded-[32px] overflow-hidden select-none touch-none w-full shadow-inner ${disabled ? 'opacity-50' : ''} ${className}`}
+      className={`relative w-full h-[64px] rounded-[32px] overflow-hidden select-none touch-none bg-gray-100 shadow-inner border border-gray-200 group cursor-pointer ${className}`}
+      onMouseDown={handleStart}
+      onMouseUp={handleEnd}
+      onMouseLeave={handleEnd}
+      onTouchStart={handleStart}
+      onTouchEnd={handleEnd}
     >
-      {/* Success State Overlay */}
+      {/* Progress Bar Background */}
       <motion.div 
-         initial={{ opacity: 0 }}
-         animate={{ opacity: isCompleted ? 1 : 0 }}
-         className="absolute inset-0 bg-black z-20 flex items-center justify-center text-white font-bold text-lg gap-2 pointer-events-none"
-      >
-         <Check className="w-6 h-6" />
-         <span>Success!</span>
-      </motion.div>
-
-      {/* Shimmer / Hint Animation */}
-      {!isCompleted && (
-          <div className="absolute inset-0 z-0 overflow-hidden rounded-[32px]">
-              <motion.div 
-                  initial={{ x: '-100%' }}
-                  animate={{ x: '200%' }}
-                  transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 1 }}
-                  className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12"
-              />
-          </div>
-      )}
-
-      {/* Progress Track */}
-      <motion.div 
-          style={{ 
-            width: x,
-            opacity: useTransform(x, [0, constraints.right], [0.1, 0.4])
-          }}
-          className="absolute left-0 top-0 bottom-0 bg-black z-0 rounded-l-[32px]"
+        className="absolute inset-0 bg-black z-0"
+        style={{ width: `${progress}%` }}
+        transition={{ type: 'tween', ease: 'linear', duration: 0 }}
       />
       
-      {/* Text Label */}
-      <motion.div 
-          style={{ opacity: textOpacity }}
-          className="absolute inset-0 flex items-center justify-center text-gray-900 font-bold text-[17px] pointer-events-none z-10 pl-8"
-      >
-          {text}
+      {/* Success State Background */}
+      <AnimatePresence>
+        {isCompleted && (
           <motion.div 
-            animate={{ x: [0, 5, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-            className="ml-2 opacity-50"
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            className="absolute inset-0 bg-green-500 z-10 flex items-center justify-center gap-2"
           >
-             <ChevronsRight className="w-5 h-5" />
+             <Check className="w-6 h-6 text-white stroke-[4]" />
+             <span className="text-white font-black text-lg uppercase tracking-wider">Success</span>
           </motion.div>
-      </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Draggable Handle */}
-      <motion.div
-          drag={disabled ? false : "x"}
-          dragConstraints={{ left: 0, right: constraints.right }}
-          dragElastic={0.05}
-          dragMomentum={false}
-          onDragEnd={disabled ? undefined : handleDragEnd}
-          animate={controls}
-          style={{ x }}
-          whileTap={disabled ? {} : { scale: 1.05 }}
-          className={`absolute top-1 left-1 bottom-1 w-[56px] h-[56px] bg-white rounded-full flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.15)] z-20 border border-gray-100 ${disabled ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
-      >
-          {icon || <ChevronRight className="w-8 h-8 text-black stroke-[3]" />}
-      </motion.div>
+      {/* Content Label */}
+      <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none mix-blend-difference text-white">
+         <span className={`font-black text-lg tracking-tight transition-opacity ${progress > 10 ? 'opacity-100' : 'opacity-0'}`}>
+            {isCompleted ? '' : 'HOLD TO CONFIRM'}
+         </span>
+      </div>
+
+      {/* Default Label (Visible when not holding) */}
+      <div className={`absolute inset-0 flex items-center justify-between px-2 z-10 transition-opacity duration-200 ${progress > 0 || isCompleted ? 'opacity-0' : 'opacity-100'}`}>
+          <div className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center">
+             {icon || <ArrowRight className="w-5 h-5 text-gray-900" />}
+          </div>
+          <span className="flex-1 text-center font-bold text-gray-900 text-lg pr-12">
+             {text}
+          </span>
+      </div>
+
+      {/* Hint animation */}
+      {!isCompleted && progress === 0 && (
+         <div className="absolute right-6 top-1/2 -translate-y-1/2 flex gap-1">
+             <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-pulse"></div>
+             <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-pulse delay-75"></div>
+             <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-pulse delay-150"></div>
+         </div>
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useCreateStore } from '@/store/useCreateStore';
 import { useUserStore } from '@/store/useUserStore';
 import { useChatStore } from '@/store/useChatStore';
 import { useSearchStore } from '@/store/useSearchStore';
+import { motion } from 'framer-motion';
 
 export default function BottomDock() {
   const { setIsOpen, reset } = useCreateStore();
@@ -18,38 +19,50 @@ export default function BottomDock() {
   };
 
   return (
-    <div className="fixed bottom-6 left-0 right-0 z-[500] px-4 pointer-events-none">
-      <div className="pointer-events-auto mx-auto max-w-[280px] bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 p-2 flex items-center justify-between">
+    <div className="fixed bottom-8 left-0 right-0 z-[500] px-4 pointer-events-none flex justify-center">
+      <div className="pointer-events-auto bg-black/80 backdrop-blur-xl rounded-[32px] shadow-2xl shadow-black/30 border border-white/10 p-2 flex items-center justify-between gap-2 min-w-[280px]">
         
-        <button 
-          onClick={() => setSearchOpen(true)}
-          className="flex flex-col items-center justify-center w-12 h-12 rounded-xl hover:bg-gray-100/50 transition-colors gap-1"
-        >
-          <Search className="w-6 h-6 text-gray-600" />
-        </button>
+        <DockButton 
+          icon={<Search className="w-6 h-6" />} 
+          onClick={() => setSearchOpen(true)} 
+        />
         
-        <button 
-          onClick={() => setChatListOpen(true)}
-          className="flex flex-col items-center justify-center w-12 h-12 rounded-xl hover:bg-gray-100/50 transition-colors gap-1"
-        >
-          <MessageCircle className="w-6 h-6 text-gray-600" />
-        </button>
+        <DockButton 
+          icon={<MessageCircle className="w-6 h-6" />} 
+          onClick={() => setChatListOpen(true)} 
+        />
 
-        <button 
-          onClick={handleCreateClick}
-          className="flex items-center justify-center w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/30 text-white transform -translate-y-6 border-4 border-white transition-transform active:scale-95"
-        >
-          <Plus className="w-7 h-7" />
-        </button>
+        {/* Central Action Button */}
+        <div className="px-2">
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleCreateClick}
+              className="flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-[#5D5FEF] to-[#00E0FF] rounded-full shadow-lg shadow-[#5D5FEF]/40 text-white border-4 border-[#121212] relative -mt-8 hover:shadow-[#5D5FEF]/60 transition-shadow"
+            >
+              <Plus className="w-8 h-8" />
+            </motion.button>
+        </div>
 
-        <button 
-          onClick={() => setProfileOpen(true)}
-          className="flex flex-col items-center justify-center w-12 h-12 rounded-xl hover:bg-gray-100/50 transition-colors gap-1"
-        >
-          <User className="w-6 h-6 text-gray-600" />
-        </button>
+        <DockButton 
+          icon={<User className="w-6 h-6" />} 
+          onClick={() => setProfileOpen(true)} 
+        />
         
       </div>
     </div>
+  );
+}
+
+function DockButton({ icon, onClick }: { icon: React.ReactNode, onClick: () => void }) {
+  return (
+    <motion.button 
+      whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' }}
+      whileTap={{ scale: 0.9 }}
+      onClick={onClick}
+      className="flex flex-col items-center justify-center w-12 h-12 rounded-2xl text-gray-400 hover:text-white transition-colors"
+    >
+      {icon}
+    </motion.button>
   );
 }

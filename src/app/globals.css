@@ -1,26 +1,88 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Modern Youthful Palette */
+  --background: #FFFFFF;
+  --foreground: #000000;
+  
+  /* Vibrant Accents */
+  --neon-blue: #5D5FEF;
+  --neon-cyan: #00E0FF;
+  --neon-pink: #FF3366;
+  --neon-lime: #CCFF00;
+  --neon-purple: #B921FF;
+  
+  /* Soft Backdrops */
+  --soft-blue: #F0F4FF;
+  --soft-purple: #F8F0FF;
+  --soft-lime: #FBFFD9;
+  
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  
+  --radius-lg: 32px;
+  --radius-md: 24px;
+  --radius-sm: 16px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  
+  --color-neon-blue: var(--neon-blue);
+  --color-neon-cyan: var(--neon-cyan);
+  --color-neon-pink: var(--neon-pink);
+  --color-neon-lime: var(--neon-lime);
+  --color-neon-purple: var(--neon-purple);
+  
+  --color-soft-blue: var(--soft-blue);
+  --color-soft-purple: var(--soft-purple);
+  --color-soft-lime: var(--soft-lime);
+  
+  --radius-lg: var(--radius-lg);
+  --radius-md: var(--radius-md);
+  --radius-sm: var(--radius-sm);
+  
+  --font-sans: var(--font-geist-sans), "Inter", sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+}
+
+/* Custom Utilities for "Cool" UI */
+.glass-panel {
+  @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-xl;
+}
+
+.neon-shadow-blue {
+  box-shadow: 0 8px 32px rgba(93, 95, 239, 0.3);
+}
+
+.neon-shadow-pink {
+  box-shadow: 0 8px 32px rgba(255, 51, 102, 0.3);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* --background: #0a0a0a; */
+    /* --foreground: #ededed; */
+    /* Keeping light mode for now as requested "youthful/fresh" usually implies bright, 
+       but if dark mode is preferred we can toggle. 
+       For now, let's stick to a unified Fresh Light Theme which is very trendy (Bento/Linear style). */
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }

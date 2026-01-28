@@ -9,33 +9,59 @@ import { useTranslations } from 'next-intl';
 import ItemDrawer from './ItemDrawer';
 import CreateDrawer from './CreateDrawer';
 import { useEffect, useState } from 'react';
-import { Check, Navigation } from 'lucide-react';
+import { Check, Navigation, Layers } from 'lucide-react';
 
-// Custom Marker Icons
-const createCustomIcon = (emoji: string, color: string) => {
+// Custom Marker Icons - CSS Pulse
+const createCustomIcon = (emoji: string, color: string, glowColor: string) => {
   return L.divIcon({
-    className: 'custom-pin',
-    html: `<div style="
-      background-color: ${color};
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      border: 3px solid white;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    ">${emoji}</div>`,
-    iconSize: [44, 44],
-    iconAnchor: [22, 22],
-    popupAnchor: [0, -22]
+    className: 'custom-pin-marker',
+    html: `
+      <div style="position: relative; width: 50px; height: 50px;">
+        <div style="
+          position: absolute;
+          inset: 0;
+          background-color: ${glowColor};
+          opacity: 0.4;
+          border-radius: 50%;
+          animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        "></div>
+        <div style="
+          position: relative;
+          background-color: ${color};
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 26px;
+          border: 4px solid white;
+          box-shadow: 0 10px 25px -5px ${glowColor};
+          transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        ">
+          ${emoji}
+        </div>
+      </div>
+      <style>
+        @keyframes ping {
+          75%, 100% {
+            transform: scale(1.5);
+            opacity: 0;
+          }
+        }
+        .custom-pin-marker:hover > div > div:nth-child(2) {
+           transform: scale(1.15) translateY(-5px);
+        }
+      </style>
+    `,
+    iconSize: [50, 50],
+    iconAnchor: [25, 25],
+    popupAnchor: [0, -25]
   });
 };
 
-const taskIcon = createCustomIcon('📦', '#FCD34D'); // Yellow for Tasks
-const eventIcon = createCustomIcon('🎉', '#60A5FA'); // Blue for Events
+const taskIcon = createCustomIcon('📦', '#FFD700', 'rgba(255, 215, 0, 0.6)'); // Vibrant Yellow
+const eventIcon = createCustomIcon('🎉', '#5D5FEF', 'rgba(93, 95, 239, 0.6)'); // Vibrant Blue/Purple
 
 function UserLocationHandler() {
   const map = useMap();
@@ -62,19 +88,19 @@ function UserLocationHandler() {
                 position={position} 
                 icon={L.divIcon({
                     className: 'user-pin',
-                    html: `<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-md relative">
-                              <div class="absolute -inset-4 bg-blue-500/20 rounded-full animate-ping"></div>
+                    html: `<div class="w-5 h-5 bg-black rounded-full border-[3px] border-white shadow-xl relative z-20">
+                              <div class="absolute -inset-8 bg-blue-500/20 rounded-full animate-pulse z-0"></div>
                            </div>`,
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8]
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
                 })}
              />
          )}
          <button 
             onClick={goToMyLocation}
-            className="absolute top-20 right-3 z-[400] w-10 h-10 bg-white rounded-xl shadow-lg flex items-center justify-center hover:bg-gray-50 active:scale-90 transition-all border border-gray-100"
+            className="absolute top-24 right-4 z-[400] w-12 h-12 bg-white rounded-2xl shadow-xl flex items-center justify-center hover:bg-gray-50 active:scale-90 transition-all border border-gray-100/50 backdrop-blur-md"
          >
-            <Navigation className="w-5 h-5 text-blue-500 fill-blue-500" />
+            <Navigation className="w-6 h-6 text-black fill-current" />
          </button>
       </>
   );
@@ -112,40 +138,38 @@ function LocationSelector() {
 
   return (
     <>
-      {/* Thought Bubble Target Indicator (NPC Style) */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[400] pointer-events-none -mt-[80px] flex flex-col items-center">
-         
-         <div className={`transition-all duration-300 flex flex-col items-center ${isMoving ? 'scale-110 -translate-y-2' : 'scale-100 translate-y-0'}`}>
-             {/* The Bubble */}
-             <div className="bg-white px-6 py-3 rounded-full shadow-xl border-2 border-gray-100 relative mb-1">
-                 <span className="font-bold text-gray-800 text-sm whitespace-nowrap flex items-center gap-2">
-                    🤔 {t('set_location_instruction')}
-                 </span>
+      {/* Dynamic Pin Animation */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[400] pointer-events-none -mt-8 flex flex-col items-center justify-center">
+          <div className={`transition-all duration-300 ease-out ${isMoving ? '-translate-y-4 scale-110' : 'translate-y-0 scale-100 bounce-land'}`}>
+             <div className="w-12 h-12 bg-black rounded-full border-[4px] border-white shadow-2xl flex items-center justify-center">
+                <div className="w-3 h-3 bg-white rounded-full"></div>
              </div>
-             
-             {/* Thought Dots */}
-             <div className="w-3 h-3 bg-white rounded-full shadow-md border border-gray-100 mb-1"></div>
-             <div className="w-1.5 h-1.5 bg-white rounded-full shadow-md border border-gray-100"></div>
-         </div>
-
+             {/* Pin Leg */}
+             <div className="w-1 h-6 bg-black mx-auto -mt-1 rounded-b-full"></div>
+          </div>
+          
+          {/* Shadow */}
+          <div className={`w-8 h-2 bg-black/20 rounded-full blur-sm transition-all duration-300 mt-1 ${isMoving ? 'scale-75 opacity-30' : 'scale-100 opacity-60'}`}></div>
       </div>
-      
-      {/* Target Pin (The 'Head' of the thinker) */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[400] pointer-events-none -mt-4">
-          <div className="w-4 h-4 bg-black rounded-full shadow-lg border-2 border-white relative z-10"></div>
-          {/* Shadow/Grounding */}
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-black/20 rounded-full blur-[2px]"></div>
+
+      {/* Instruction Bubble */}
+      <div className="absolute top-28 left-0 right-0 z-[400] flex justify-center pointer-events-none">
+          <div className="bg-white/90 backdrop-blur-xl px-6 py-3 rounded-full shadow-lg border border-white/50 animate-in fade-in slide-in-from-top-4 duration-500">
+             <span className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                👋 {t('set_location_instruction')}
+             </span>
+          </div>
       </div>
 
       {/* Confirm Button */}
-      <div className="absolute bottom-36 left-0 right-0 z-[400] flex justify-center pointer-events-none px-4">
+      <div className="absolute bottom-32 left-0 right-0 z-[400] flex justify-center pointer-events-none px-6">
          <button 
            onClick={handleConfirm}
-           className="group pointer-events-auto bg-black text-white px-6 py-4 rounded-[32px] font-bold shadow-2xl flex items-center gap-3 active:scale-95 transition-all duration-300 hover:shadow-black/20 w-full max-w-[280px] justify-center"
+           className="group pointer-events-auto bg-black text-white w-full max-w-sm py-5 rounded-[32px] font-black text-xl shadow-2xl flex items-center justify-center gap-3 active:scale-95 transition-all duration-300 hover:shadow-black/25"
          >
-           <span className="text-lg">{t('confirm_location')}</span>
-           <div className="bg-white/20 rounded-full p-1 group-hover:bg-white/30 transition-colors">
-              <Check className="w-5 h-5" />
+           <span>{t('confirm_location')}</span>
+           <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
+              <Check className="w-5 h-5 stroke-[3]" />
            </div>
          </button>
       </div>
@@ -158,83 +182,55 @@ export default function Map() {
   const [filter, setFilter] = useState<'ALL' | 'TASK' | 'EVENT'>('ALL');
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
-  // Fetch nearby items when component mounts or location changes
   useEffect(() => {
-    if (typeof window !== 'undefined' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          setUserLocation([lat, lng]);
-          
-          // Fetch items within 5km radius
-          fetchNearbyItems(lat, lng, 5000, filter === 'ALL' ? undefined : filter);
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          // Fallback to Almaty coordinates
-          const defaultLat = 43.238949;
-          const defaultLng = 76.889709;
-          setUserLocation([defaultLat, defaultLng]);
-          fetchNearbyItems(defaultLat, defaultLng, 5000, filter === 'ALL' ? undefined : filter);
-        }
-      );
-    } else {
-      // Fallback to default location
-      const defaultLat = 43.238949;
-      const defaultLng = 76.889709;
-      setUserLocation([defaultLat, defaultLng]);
-      fetchNearbyItems(defaultLat, defaultLng, 5000, filter === 'ALL' ? undefined : filter);
-    }
-  }, [filter, fetchNearbyItems]);
+    // Initial fetch fallback
+    fetchNearbyItems(43.238949, 76.889709, 10000, filter === 'ALL' ? undefined : filter);
+  }, [filter]);
 
   const filteredItems = items.filter(item => filter === 'ALL' || item.type === filter);
 
   return (
     <>
       <MapContainer 
-        center={[43.238949, 76.889709]} // Almaty coordinates fallback
+        center={[43.238949, 76.889709]} 
         zoom={13} 
-        className="h-dvh w-full z-0 bg-[#f5f5f5]" // Fallback color matching Voyager
+        className="h-dvh w-full z-0 bg-[#f0f0f0]" 
         zoomControl={false}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          className="saturate-[1.1]" // Slightly boost saturation for "youthful" vibe
+          attribution='&copy; CARTO'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" // Super clean minimal map
         />
         <ZoomControl position="topright" />
 
         <UserLocationHandler />
         <LocationSelector />
 
-        {/* Filter Controls - Vertical Left Side */}
-        <div className="absolute top-24 left-3 z-[400] flex flex-col gap-2 pointer-events-none">
-            <div className="bg-white p-1.5 rounded-2xl shadow-lg pointer-events-auto flex flex-col gap-1 border border-gray-100 w-12 items-center">
+        {/* Filter Pills - Top Left */}
+        <div className="absolute top-14 left-4 z-[400] flex flex-col gap-3 pointer-events-none">
+            <div className="pointer-events-auto flex flex-col gap-2">
                 <button 
                     onClick={() => setFilter('ALL')}
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${filter === 'ALL' ? 'bg-black text-white shadow-md' : 'text-gray-400 hover:bg-gray-100'}`}
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-lg backdrop-blur-md border border-white/20 ${filter === 'ALL' ? 'bg-black text-white scale-110' : 'bg-white/90 text-gray-400 hover:bg-white'}`}
                 >
-                    <span className="font-bold text-xs">All</span>
+                    <Layers className="w-6 h-6" />
                 </button>
-                <div className="h-px w-6 bg-gray-100"></div>
                 <button 
                     onClick={() => setFilter('TASK')}
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${filter === 'TASK' ? 'bg-[#FEF9C3] text-yellow-800 shadow-sm' : 'text-gray-400 hover:bg-gray-100'}`}
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-lg backdrop-blur-md border border-white/20 ${filter === 'TASK' ? 'bg-[#FFD700] text-black scale-110' : 'bg-white/90 text-gray-400 hover:bg-white'}`}
                 >
-                    <span className="text-lg">📦</span>
+                    <span className="text-2xl">📦</span>
                 </button>
                 <button 
                     onClick={() => setFilter('EVENT')}
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${filter === 'EVENT' ? 'bg-[#DBEAFE] text-blue-800 shadow-sm' : 'text-gray-400 hover:bg-gray-100'}`}
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-lg backdrop-blur-md border border-white/20 ${filter === 'EVENT' ? 'bg-[#5D5FEF] text-white scale-110' : 'bg-white/90 text-gray-400 hover:bg-white'}`}
                 >
-                    <span className="text-lg">🎉</span>
+                    <span className="text-2xl">🎉</span>
                 </button>
             </div>
         </div>
 
         {filteredItems.map((item) => {
-          // Convert latitude/longitude to [lat, lng] array
           const position: [number, number] = [
             item.latitude || 43.238949,
             item.longitude || 76.889709
