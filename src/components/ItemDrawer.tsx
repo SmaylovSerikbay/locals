@@ -331,17 +331,89 @@ export default function ItemDrawer() {
                    </div>
                 ) : (
                     <>
-                      {/* Event status-based button */}
+                      {/* Event: User is APPROVED - Show Chat Button + Participants */}
                       {!isTask && userStatus === 'APPROVED' ? (
-                         <div className="w-full py-6 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 rounded-[28px] font-bold text-xl text-center flex items-center justify-center gap-3 border-2 border-green-300 shadow-lg">
-                             <CheckCircle className="w-7 h-7" /> 
-                             <span>✓ Я в деле</span>
-                         </div>
+                         <motion.div 
+                           initial={{ opacity: 0, y: 20 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           className="flex flex-col gap-3"
+                         >
+                           {/* Status Badge */}
+                           <div className="w-full py-4 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 rounded-[24px] font-bold text-lg text-center flex items-center justify-center gap-2 border-2 border-green-300">
+                               <CheckCircle className="w-6 h-6" /> 
+                               <span>✓ Ты в деле!</span>
+                           </div>
+
+                           {/* Open Telegram Chat Button */}
+                           {(selectedItem as any).telegram_topic_id && (
+                             <motion.button
+                               whileTap={{ scale: 0.97 }}
+                               onClick={() => {
+                                 const chatIdNumeric = ((selectedItem as any).telegram_chat_id || '-1003836967887').replace('-100', '');
+                                 const topicLink = `https://t.me/c/${chatIdNumeric}/${(selectedItem as any).telegram_topic_id}`;
+                                 window.open(topicLink, '_blank');
+                               }}
+                               className="w-full py-5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-[24px] font-bold text-lg shadow-xl shadow-blue-500/30 hover:shadow-2xl transition-all flex items-center justify-center gap-3"
+                             >
+                               <MessageCircle className="w-6 h-6" />
+                               <span>💬 Открыть чат группы</span>
+                             </motion.button>
+                           )}
+
+                           {/* Participants List */}
+                           {approvedParticipants.length > 0 && (
+                             <motion.div 
+                               initial={{ opacity: 0, height: 0 }}
+                               animate={{ opacity: 1, height: 'auto' }}
+                               className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-[24px] p-4"
+                             >
+                               <div className="flex items-center justify-between mb-3">
+                                 <div className="flex items-center gap-2">
+                                   <Users className="w-5 h-5 text-blue-600" />
+                                   <span className="font-bold text-blue-900">Участники</span>
+                                 </div>
+                                 <div className="bg-blue-200 text-blue-700 px-3 py-1 rounded-full text-sm font-bold">
+                                   {approvedParticipants.length}
+                                 </div>
+                               </div>
+                               
+                               <div className="flex flex-wrap gap-2">
+                                 {approvedParticipants.slice(0, 10).map((p: any, i: number) => (
+                                   <motion.div
+                                     key={p.id}
+                                     initial={{ opacity: 0, scale: 0.8 }}
+                                     animate={{ opacity: 1, scale: 1 }}
+                                     transition={{ delay: i * 0.05 }}
+                                     className="flex items-center gap-2 bg-white px-3 py-2 rounded-full border border-blue-200 shadow-sm"
+                                   >
+                                     <img
+                                       src={p.user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.user_id}`}
+                                       className="w-7 h-7 rounded-full border-2 border-blue-300"
+                                       alt=""
+                                     />
+                                     <span className="text-sm font-medium text-gray-800 max-w-[80px] truncate">
+                                       {p.user?.first_name || 'User'}
+                                     </span>
+                                   </motion.div>
+                                 ))}
+                                 {approvedParticipants.length > 10 && (
+                                   <div className="flex items-center justify-center bg-gradient-to-r from-blue-100 to-indigo-100 px-4 py-2 rounded-full border-2 border-blue-300 font-bold text-blue-700">
+                                     +{approvedParticipants.length - 10}
+                                   </div>
+                                 )}
+                               </div>
+                             </motion.div>
+                           )}
+                         </motion.div>
                       ) : !isTask && userStatus === 'PENDING' ? (
-                         <div className="w-full py-6 bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-700 rounded-[28px] font-bold text-xl text-center flex items-center justify-center gap-3 border-2 border-orange-300 shadow-lg">
+                         <motion.div 
+                           initial={{ opacity: 0, y: 20 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           className="w-full py-6 bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-700 rounded-[28px] font-bold text-xl text-center flex items-center justify-center gap-3 border-2 border-orange-300 shadow-lg"
+                         >
                              <Clock className="w-7 h-7" /> 
                              <span>⏳ {t('waiting_approval')}</span>
-                         </div>
+                         </motion.div>
                       ) : (
                         <SlideButton 
                            text={isTask ? t('slide_to_apply') : (requiresApproval ? t('request_to_join') : t('slide_to_join'))}
