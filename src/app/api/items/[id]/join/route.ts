@@ -46,24 +46,28 @@ export async function POST(
 
     // 3. For EVENTS: Check if requires approval and if event is full
     if (item.type === 'EVENT') {
-      // Check if event is full
-      const { data: isFull } = await supabase
-        .rpc('is_event_full', { event_id: id });
+      // Check if event is full (only if function exists)
+      try {
+        const { data: isFull, error: fullError } = await supabase
+          .rpc('is_event_full', { event_id: id });
 
-      if (isFull) {
-        return NextResponse.json(
-          { error: 'Event is full' },
-          { status: 400 }
-        );
+        if (!fullError && isFull) {
+          return NextResponse.json(
+            { error: 'Event is full' },
+            { status: 400 }
+          );
+        }
+      } catch (e) {
+        console.log('is_event_full function not available yet');
       }
 
       // Check if already joined
-      const { data: existing } = await supabase
+      const { data: existing, error: existError } = await supabase
         .from('chat_participants')
         .select('*')
         .eq('item_id', id)
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         return NextResponse.json(
@@ -163,9 +167,10 @@ export async function GET(
       return NextResponse.json({ participants: [] }, { status: 200 });
     }
 
+    // Use explicit relationship name to avoid ambiguity
     let query = supabase
       .from('chat_participants')
-      .select('*, user:users(*)')
+      .select('*, user:users!chat_participants_user_id_fkey(*)')
       .eq('item_id', id)
       .order('joined_at', { ascending: false });
 
