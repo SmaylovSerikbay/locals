@@ -37,19 +37,27 @@ export interface Item {
   longitude: number;
   location?: [number, number]; // [lat, lng] - optional for backwards compatibility
   status: ItemStatus;
-  author: {
+  author_id?: number; // From API
+  author?: {
     id: string | number;
     username?: string;
     first_name?: string;
     last_name?: string;
-    name?: string; // backwards compatibility
+    name?: string;
     avatar_url?: string;
-    avatarUrl?: string; // backwards compatibility
+    avatarUrl?: string;
     reputation: number;
   };
-  responses: Response[]; // Candidates
+  executor_id?: number; // From API
+  executor?: any; // From API
+  responses?: Response[]; // Candidates
   executorId?: string; // Who is doing the task
   reviews?: Review[];
+  distance_meters?: number; // From nearby query
+  telegram_topic_id?: number;
+  telegram_chat_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface ItemsState {
