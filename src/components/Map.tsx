@@ -233,18 +233,26 @@ export default function Map() {
             </div>
         </div>
 
-        {filteredItems.map((item) => (
-          <Marker 
-            key={item.id} 
-            position={item.location}
-            icon={item.type === 'TASK' ? taskIcon : eventIcon}
-            eventHandlers={{
-              click: () => {
-                setSelectedItem(item);
-              },
-            }}
-          />
-        ))}
+        {filteredItems.map((item) => {
+          // Convert latitude/longitude to [lat, lng] array
+          const position: [number, number] = [
+            item.latitude || 43.238949,
+            item.longitude || 76.889709
+          ];
+          
+          return (
+            <Marker 
+              key={item.id} 
+              position={position}
+              icon={item.type === 'TASK' ? taskIcon : eventIcon}
+              eventHandlers={{
+                click: () => {
+                  setSelectedItem(item);
+                },
+              }}
+            />
+          );
+        })}
       </MapContainer>
       <ItemDrawer />
       <CreateDrawer />

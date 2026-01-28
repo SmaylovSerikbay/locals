@@ -33,7 +33,9 @@ export interface Item {
   price?: number; // For tasks
   currency: Currency;
   eventDate?: string; // For events
-  location: [number, number]; // [lat, lng]
+  latitude: number;
+  longitude: number;
+  location?: [number, number]; // [lat, lng] - optional for backwards compatibility
   status: ItemStatus;
   author: {
     id: string; // added ID to check ownership

@@ -42,7 +42,7 @@ export default async function RootLayout({
   const messages = await getMessages();
  
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <Script 
           src="https://telegram.org/js/telegram-web-app.js" 
@@ -51,6 +51,7 @@ export default async function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
         <NextIntlClientProvider messages={messages}>
           <DevTools />
