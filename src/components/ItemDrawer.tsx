@@ -164,58 +164,60 @@ export default function ItemDrawer() {
             style={{ minHeight: '50vh', maxHeight: '90vh' }}
         >
           
-          {/* Header */}
-          <div className="relative h-52 shrink-0 bg-gray-100 overflow-hidden">
-             <div className={`absolute inset-0 bg-gradient-to-br ${isTask ? 'from-yellow-100 via-orange-50 to-yellow-50' : 'from-blue-100 via-indigo-50 to-purple-50'}`}></div>
-             <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-             
-             <div className={`absolute -top-20 -right-20 w-64 h-64 rounded-full ${isTask ? 'bg-yellow-200' : 'bg-blue-200'} opacity-30 blur-3xl`}></div>
-             <div className={`absolute -bottom-20 -left-20 w-64 h-64 rounded-full ${isTask ? 'bg-orange-200' : 'bg-indigo-200'} opacity-30 blur-3xl`}></div>
-
-             <div className="absolute top-4 left-4 right-4 flex justify-between z-10">
-                 <button onClick={() => setSelectedItem(null)} className="w-11 h-11 bg-white/80 backdrop-blur-xl rounded-full flex items-center justify-center hover:bg-white transition-all shadow-lg active:scale-95 border border-white/50">
-                    <X className="w-5 h-5 text-gray-900" />
-                 </button>
-                 <div className="flex gap-2">
-                    <button className="w-11 h-11 bg-white/80 backdrop-blur-xl rounded-full flex items-center justify-center hover:bg-white transition-all shadow-lg active:scale-95 border border-white/50">
-                        <Share2 className="w-5 h-5 text-gray-900" />
-                    </button>
-                    {isOwner && (
-                      <button 
-                        onClick={handleDelete}
-                        className={`w-11 h-11 backdrop-blur-xl rounded-full flex items-center justify-center transition-all shadow-lg active:scale-95 border ${
-                          showDeleteConfirm 
-                            ? 'bg-red-500 border-red-600' 
-                            : 'bg-white/80 border-white/50 hover:bg-white'
-                        }`}
-                      >
-                        {showDeleteConfirm ? (
-                          <AlertCircle className="w-5 h-5 text-white" />
-                        ) : (
-                          <Trash2 className="w-5 h-5 text-gray-900" />
-                        )}
-                      </button>
-                    )}
-                 </div>
-             </div>
-
-             <div className="absolute bottom-5 left-6 right-6">
-                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg mb-2 ${isTask ? 'bg-gradient-to-r from-yellow-400 to-orange-400 text-yellow-950' : 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'}`}>
-                    {isTask ? <Briefcase className="w-4 h-4" /> : <Calendar className="w-4 h-4" />}
-                    {isTask ? 'Task' : 'Event'}
-                </div>
-                <h1 className="text-3xl font-black text-gray-900 leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.1)] line-clamp-2">
-                    {selectedItem.title}
-                </h1>
-             </div>
-          </div>
-
-          {/* Scrollable Content */}
+          {/* Scrollable Content with Header */}
           <div 
             ref={contentRef}
-            className="flex-1 overflow-y-auto bg-white rounded-t-[32px] -mt-6 relative z-10 px-6 pt-8"
+            className="flex-1 overflow-y-auto bg-white"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 100px)' }}
           >
+            {/* Header - Now Scrollable */}
+            <div className="relative h-48 shrink-0 bg-gray-100 overflow-hidden">
+               <div className={`absolute inset-0 bg-gradient-to-br ${isTask ? 'from-yellow-100 via-orange-50 to-yellow-50' : 'from-blue-100 via-indigo-50 to-purple-50'}`}></div>
+               <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+               
+               <div className={`absolute -top-20 -right-20 w-64 h-64 rounded-full ${isTask ? 'bg-yellow-200' : 'bg-blue-200'} opacity-30 blur-3xl`}></div>
+               <div className={`absolute -bottom-20 -left-20 w-64 h-64 rounded-full ${isTask ? 'bg-orange-200' : 'bg-indigo-200'} opacity-30 blur-3xl`}></div>
+
+               <div className="absolute top-4 left-4 right-4 flex justify-between z-10">
+                   <button onClick={() => setSelectedItem(null)} className="w-11 h-11 bg-white/80 backdrop-blur-xl rounded-full flex items-center justify-center hover:bg-white transition-all shadow-lg active:scale-95 border border-white/50">
+                      <X className="w-5 h-5 text-gray-900" />
+                   </button>
+                   <div className="flex gap-2">
+                      <button className="w-11 h-11 bg-white/80 backdrop-blur-xl rounded-full flex items-center justify-center hover:bg-white transition-all shadow-lg active:scale-95 border border-white/50">
+                          <Share2 className="w-5 h-5 text-gray-900" />
+                      </button>
+                      {isOwner && (
+                        <button 
+                          onClick={handleDelete}
+                          className={`w-11 h-11 backdrop-blur-xl rounded-full flex items-center justify-center transition-all shadow-lg active:scale-95 border ${
+                            showDeleteConfirm 
+                              ? 'bg-red-500 border-red-600' 
+                              : 'bg-white/80 border-white/50 hover:bg-white'
+                          }`}
+                        >
+                          {showDeleteConfirm ? (
+                            <AlertCircle className="w-5 h-5 text-white" />
+                          ) : (
+                            <Trash2 className="w-5 h-5 text-gray-900" />
+                          )}
+                        </button>
+                      )}
+                   </div>
+               </div>
+
+               <div className="absolute bottom-4 left-5 right-5">
+                  <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg mb-2 ${isTask ? 'bg-gradient-to-r from-yellow-400 to-orange-400 text-yellow-950' : 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'}`}>
+                      {isTask ? <Briefcase className="w-3.5 h-3.5" /> : <Calendar className="w-3.5 h-3.5" />}
+                      {isTask ? 'Task' : 'Event'}
+                  </div>
+                  <h1 className="text-2xl font-black text-gray-900 leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.1)] line-clamp-2">
+                      {selectedItem.title}
+                  </h1>
+               </div>
+            </div>
+
+            {/* Content */}
+            <div className="px-6 pt-6">
             
             {/* Owner Tabs */}
             {isOwner && (
@@ -272,6 +274,7 @@ export default function ItemDrawer() {
                 )}
             </AnimatePresence>
 
+            </div>
           </div>
 
           {/* Footer Action */}

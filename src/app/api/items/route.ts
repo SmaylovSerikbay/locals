@@ -152,8 +152,12 @@ export async function POST(request: NextRequest) {
 
     // Create Telegram topic for the item
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-      const topicResponse = await fetch(`${baseUrl}/api/telegram/create-group`, {
+      // Get Vercel URL or fallback to localhost
+      const vercelUrl = process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      
+      const topicResponse = await fetch(`${vercelUrl}/api/telegram/create-group`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
