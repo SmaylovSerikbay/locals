@@ -38,9 +38,13 @@ export interface Item {
   location?: [number, number]; // [lat, lng] - optional for backwards compatibility
   status: ItemStatus;
   author: {
-    id: string; // added ID to check ownership
-    name: string;
-    avatarUrl: string;
+    id: string | number;
+    username?: string;
+    first_name?: string;
+    last_name?: string;
+    name?: string; // backwards compatibility
+    avatar_url?: string;
+    avatarUrl?: string; // backwards compatibility
     reputation: number;
   };
   responses: Response[]; // Candidates
