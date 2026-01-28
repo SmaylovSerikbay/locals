@@ -86,6 +86,8 @@ export async function POST(request: NextRequest) {
       latitude,
       longitude,
       author_id,
+      max_participants,
+      requires_approval,
     } = body;
 
     // Валидация
@@ -133,6 +135,9 @@ export async function POST(request: NextRequest) {
         longitude,
         author_id,
         status: 'OPEN',
+        max_participants: max_participants || null,
+        requires_approval: requires_approval || false,
+        current_participants: 0,
       })
       .select(`
         *,
@@ -143,6 +148,29 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating item:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Create Telegram topic for the item
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const topicResponse = await fetch(`${baseUrl}/api/telegram/create-group`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemId: data.id,
+          title: data.title,
+          type: data.type,
+        }),
+      });
+
+      if (!topicResponse.ok) {
+        console.error('Failed to create Telegram topic:', await topicResponse.text());
+      } else {
+        console.log('Telegram topic created successfully');
+      }
+    } catch (telegramError) {
+      console.error('Telegram topic creation error:', telegramError);
+      // Don't fail the item creation if Telegram fails
     }
 
     return NextResponse.json({ item: data }, { status: 201 });

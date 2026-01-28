@@ -12,6 +12,8 @@ interface CreateState {
     price: string;
     currency: Currency;
     date: string;
+    maxParticipants?: string;
+    requiresApproval?: boolean;
   };
   setIsOpen: (isOpen: boolean) => void;
   setStep: (step: number) => void;
@@ -31,7 +33,9 @@ export const useCreateStore = create<CreateState>((set) => ({
     description: '',
     price: '',
     currency: 'USD',
-    date: ''
+    date: '',
+    maxParticipants: undefined,
+    requiresApproval: false,
   },
   setIsOpen: (isOpen) => set({ isOpen }),
   setStep: (step) => set({ step }),
@@ -47,7 +51,9 @@ export const useCreateStore = create<CreateState>((set) => ({
       description: '',
       price: '',
       currency: 'USD',
-      date: ''
+      date: '',
+      maxParticipants: undefined,
+      requiresApproval: false,
     }
   })
 }));

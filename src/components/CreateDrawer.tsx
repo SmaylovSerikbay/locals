@@ -156,6 +156,9 @@ export default function CreateDrawer() {
       latitude: location[0],
       longitude: location[1],
       author_id: user.id,
+      // New moderation fields
+      max_participants: type === 'EVENT' && formData.maxParticipants ? Number(formData.maxParticipants) : undefined,
+      requires_approval: type === 'EVENT' ? (formData.requiresApproval ?? false) : false,
     };
 
     const createdItem = await createItem(itemData);
@@ -301,7 +304,7 @@ export default function CreateDrawer() {
                              </div>
                           </div>
                       ) : (
-                          <div className="p-1">
+                          <div className="p-1 space-y-2">
                               <DateTrigger 
                                   value={formData.date} 
                                   onChange={(val) => setFormData({ date: val })} 
@@ -309,6 +312,59 @@ export default function CreateDrawer() {
                           </div>
                       )}
                   </div>
+
+                  {/* Event-specific options */}
+                  {!isTask && (
+                    <div className="space-y-3">
+                      {/* Max Participants */}
+                      <div className="bg-white rounded-[24px] p-4 shadow-sm">
+                        <label className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                              <span className="text-xl">👥</span>
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold text-gray-900">Max Participants</div>
+                              <div className="text-xs text-gray-500">Leave empty for unlimited</div>
+                            </div>
+                          </div>
+                        </label>
+                        <input 
+                          type="number"
+                          min="2"
+                          className="w-full py-3 px-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-bold text-lg placeholder:text-gray-300 text-gray-900 focus:border-purple-300 transition-colors"
+                          value={formData.maxParticipants || ''}
+                          onChange={(e) => setFormData({ maxParticipants: e.target.value })}
+                          placeholder="Unlimited"
+                        />
+                      </div>
+
+                      {/* Requires Approval Toggle */}
+                      <div 
+                        onClick={() => setFormData({ requiresApproval: !formData.requiresApproval })}
+                        className="bg-white rounded-[24px] p-4 shadow-sm cursor-pointer active:scale-[0.98] transition-all"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                              <span className="text-xl">🔐</span>
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold text-gray-900">Approve Join Requests</div>
+                              <div className="text-xs text-gray-500">Manually approve who joins</div>
+                            </div>
+                          </div>
+                          <div className={`w-14 h-8 rounded-full transition-all relative ${
+                            formData.requiresApproval ? 'bg-blue-500' : 'bg-gray-200'
+                          }`}>
+                            <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-all ${
+                              formData.requiresApproval ? 'right-1' : 'left-1'
+                            }`} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex items-center gap-3 px-4 py-4 bg-white/50 rounded-[24px] border border-white/60">
                      <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
